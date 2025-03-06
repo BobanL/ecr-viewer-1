@@ -15,10 +15,10 @@ export interface ecr_data {
 
   patient_name_first: string;
   patient_name_last: string;
-  patient_birth_date: ColumnType<Date, string | undefined, never>;
+  patient_birth_date: ColumnType<Date | undefined>;
 
-  date_created: ColumnType<Date, string | undefined, never>;
-  report_date: ColumnType<Date, string>;
+  date_created: ColumnType<Date | undefined>;
+  report_date: ColumnType<Date | undefined>;
 }
 
 export interface ecr_rr_conditions {

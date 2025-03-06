@@ -387,9 +387,9 @@ export const saveCoreMetadata = async (
             set_id: metadata.eicr_set_id,
             patient_name_last: metadata.last_name,
             patient_name_first: metadata.first_name,
-            patient_birth_date: metadata.birth_date,
+            patient_birth_date: new Date(metadata.birth_date),
             data_source: "DB",
-            report_date: metadata.report_date,
+            report_date: new Date(metadata.report_date),
             eicr_version_number: metadata.eicr_version_number,
           })
           .returningAll()

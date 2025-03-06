@@ -52,9 +52,9 @@ describe("ecr_data", () => {
       eicr_version_number: "50000",
       patient_name_first: "Boba",
       patient_name_last: "Fett",
-      patient_birth_date: "1969-02-11", // Kysely formats these strings as necessary
-      date_created: "2025-01-01",
-      report_date: "2025-02-07",
+      patient_birth_date: new Date("1969-02-11"),
+      date_created: new Date("2025-01-01"),
+      report_date: new Date("2025-02-07"),
     });
   });
 

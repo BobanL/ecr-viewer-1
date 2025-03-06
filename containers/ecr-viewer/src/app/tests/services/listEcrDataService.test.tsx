@@ -1,8 +1,6 @@
 /**
  * @jest-environment node
  */
-import { getDB } from "@/app/data/db/postgres_db";
-import { get_pool } from "@/app/data/db/sqlserver_db";
 import { formatDate, formatDateTime } from "@/app/services/formatDateService";
 import {
   CoreMetadataModel,
@@ -15,12 +13,10 @@ import {
   listEcrData,
   generateFilterDateStatementPostgres,
 } from "@/app/services/listEcrDataService";
-
-jest.mock("../../data/db/sqlserver_db", () => ({
-  get_pool: jest.fn(),
-}));
-
-const { database } = getDB();
+import { Kysely, sql } from "kysely";
+import { Core } from "@/app/api/services/types";
+import { db } from "@/app/api/services/database";
+import { saveCoreMetadata } from "@/app/api/save-fhir-data/save-fhir-data-service";
 
 const testDateRange = {
   startDate: new Date("12-01-2024"),
@@ -106,60 +102,93 @@ describe("listEcrDataService", () => {
   });
 
   describe("list Ecr data with postgres", () => {
-    beforeAll(() => {
+    interface EcrDisplay {
+      ecrId: string;
+      patient_first_name: string;
+      patient_last_name: string;
+      patient_date_of_birth: string | undefined;
+      reportable_conditions: string[];
+      rule_summaries: string[];
+      patient_report_date: string;
+      date_created: string;
+      eicr_set_id: string | undefined;
+      eicr_version_number: string | undefined;
+    }
+    beforeAll(async () => {
       process.env.METADATA_DATABASE_TYPE = "postgres";
+      await db.schema
+        .createTable("ecr_viewer.ecr_data")
+        .addColumn("eicr_id", "varchar(200)", (cb) => cb.primaryKey())
+        .addColumn("set_id", "varchar(255)")
+        .addColumn("eicr_version_number", "varchar(50)")
+        .addColumn("data_source", "varchar(2)") // S3 or DB
+        .addColumn("fhir_reference_link", "varchar(500)")
+        .addColumn("patient_name_first", "varchar(100)")
+        .addColumn("patient_name_last", "varchar(100)")
+        .addColumn("patient_birth_date", "date")
+        .addColumn("date_created", "timestamptz", (cb) =>
+          cb.notNull().defaultTo(sql`NOW()`),
+        )
+        .addColumn("report_date", "date")
+        .execute();
+      await db.schema
+        .createTable("ecr_viewer.ecr_rr_conditions")
+        .addColumn("uuid", "varchar(200)", (cb) => cb.primaryKey())
+        .addColumn("eicr_id", "varchar(255)", (cb) => cb.notNull())
+        .addColumn("condition", "varchar")
+        .execute();
+      await db.schema
+        .createTable("ecr_viewer.ecr_rr_rule_summaries")
+        .addColumn("uuid", "varchar(200)", (cb) => cb.primaryKey())
+        .addColumn("ecr_rr_conditions_id", "varchar(200)")
+        .addColumn("rule_summary", "varchar")
+        .execute();
     });
-    afterAll(() => {
+
+    afterAll( async () => {
       delete process.env.METADATA_DATABASE_TYPE;
+      await db.schema.dropTable("ecr_viewer.ecr_data").execute();
+      await db.schema.dropTable("ecr_viewer.ecr_rr_conditions").execute();
+      await db.schema.dropTable("ecr_viewer.ecr_rr_rule_summaries").execute();
     });
+
     it("should return empty array when no data is found", async () => {
       const startIndex = 0;
       const itemsPerPage = 25;
       const columnName = "date_created";
       const direction = "DESC";
 
-      database.manyOrNone = jest.fn(() => Promise.resolve([]));
-      const actual = await listEcrData(
+      const result = await listEcrData(
         startIndex,
         itemsPerPage,
         columnName,
         direction,
         testDateRange,
       );
-      expect(database.manyOrNone).toHaveBeenCalledOnce();
-      expect(database.manyOrNone).toHaveBeenCalledWith(
-        "SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE $[whereClause] GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number $[sortStatement] OFFSET $[startIndex] ROWS FETCH NEXT $[itemsPerPage] ROWS ONLY",
-        {
-          whereClause: expect.any(Object),
-          startIndex,
-          itemsPerPage,
-          sortStatement: expect.any(Object),
-        },
-      );
-      expect(actual).toBeEmpty();
+
+      expect(result).toBeEmpty();
     });
 
     it("should return data when found", async () => {
-      // @ts-ignore TS2364
-      database.manyOrNone<CoreMetadataModel> = jest.fn(() =>
-        Promise.resolve<CoreMetadataModel[]>([
-          {
-            eicr_id: "1234",
-            date_created: new Date("2024-06-21T12:00:00Z"),
-            patient_birth_date: new Date("11/07/1954"),
-            patient_name_first: "Billy",
-            patient_name_last: "Bob",
-            report_date: new Date("06/21/2024 8:00 AM EDT"),
-            conditions: ["super ebola", "double ebola"],
-            rule_summaries: ["watch out for super ebola"],
-            data_link: "",
-            data_source: "DB",
-            set_id: "123",
-            eicr_version_number: "1",
-          },
-        ]),
-      );
+      const insert = await db
+      .insertInto("ecr_viewer.ecr_data")
+      .values({
+        eicr_id: "12345",
+        set_id: "123",
+        data_source: "DB",
+        fhir_reference_link: "",
+        eicr_version_number: "1",
+        patient_name_first: "Billy",
+        patient_name_last: "Bob",
+        patient_birth_date: new Date("2024-12-01T12:00:00Z"),
+        date_created: new Date("2024-12-01T12:00:00Z"),
+        report_date: new Date("2024-12-01T12:00:00Z"),
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
 
+      console.log(insert);
+      // @ts-ignore TS2364
       const startIndex = 0;
       const itemsPerPage = 25;
       const columnName = "date_created";
@@ -171,54 +200,24 @@ describe("listEcrDataService", () => {
         direction,
         testDateRange,
       );
-
-      expect(database.manyOrNone).toHaveBeenCalledOnce();
-      expect(database.manyOrNone).toHaveBeenCalledWith(
-        "SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE $[whereClause] GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number $[sortStatement] OFFSET $[startIndex] ROWS FETCH NEXT $[itemsPerPage] ROWS ONLY",
-        {
-          whereClause: expect.any(Object),
-          startIndex,
-          itemsPerPage,
-          sortStatement: expect.any(Object),
-        },
-      );
       expect(actual).toEqual([
         {
           date_created: "06/21/2024 8:00\u00A0AM\u00A0EDT",
-          ecrId: "1234",
+          ecrId: "12345",
           patient_date_of_birth: "11/07/1954",
           patient_first_name: "Billy",
           patient_last_name: "Bob",
           patient_report_date: "06/21/2024 8:00\u00A0AM\u00A0EDT",
-          reportable_conditions: ["super ebola", "double ebola"],
-          rule_summaries: ["watch out for super ebola"],
+          reportable_conditions: [],
+          rule_summaries: [],
           eicr_set_id: "123",
           eicr_version_number: "1",
-        },
+        }
       ]);
     });
 
     it("should get data from the fhir_metadata table", async () => {
       // @ts-ignore TS2364
-      database.manyOrNone<CoreMetadataModel> = jest.fn(() =>
-        Promise.resolve<CoreMetadataModel[]>([
-          {
-            eicr_id: "1234",
-            date_created: new Date("2024-06-21T12:00:00Z"),
-            patient_name_first: "boy",
-            patient_name_last: "lnam",
-            patient_birth_date: new Date("1990-01-01T05:00:00.000Z"),
-            report_date: new Date("2024-06-20T04:00:00.000Z"),
-            conditions: ["sick", "tired"],
-            rule_summaries: ["stuff", "disease discovered"],
-            data_link: "",
-            data_source: "DB",
-            set_id: "123",
-            eicr_version_number: "1",
-          },
-        ]),
-      );
-
       const startIndex = 0;
       const itemsPerPage = 25;
       const columnName = "date_created";
@@ -229,16 +228,6 @@ describe("listEcrDataService", () => {
         columnName,
         direction,
         testDateRange,
-      );
-      expect(database.manyOrNone).toHaveBeenCalledOnce();
-      expect(database.manyOrNone).toHaveBeenCalledWith(
-        "SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE $[whereClause] GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number $[sortStatement] OFFSET $[startIndex] ROWS FETCH NEXT $[itemsPerPage] ROWS ONLY",
-        {
-          whereClause: expect.any(Object),
-          startIndex,
-          itemsPerPage,
-          sortStatement: expect.any(Object),
-        },
       );
       expect(actual).toEqual([
         {
@@ -263,34 +252,6 @@ describe("listEcrDataService", () => {
       const columnName = "date_created";
       const direction = "DESC";
       const searchTerm = "abc";
-
-      await listEcrData(
-        startIndex,
-        itemsPerPage,
-        columnName,
-        direction,
-        testDateRange,
-        searchTerm,
-      );
-      expect(database.manyOrNone).toHaveBeenCalledOnce();
-      expect(database.manyOrNone).toHaveBeenCalledWith(
-        "SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE $[whereClause] GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number $[sortStatement] OFFSET $[startIndex] ROWS FETCH NEXT $[itemsPerPage] ROWS ONLY",
-        {
-          whereClause: expect.any(Object),
-          startIndex,
-          itemsPerPage,
-          sortStatement: expect.any(Object),
-        },
-      );
-    });
-
-    it("should escape search term", async () => {
-      database.manyOrNone = jest.fn(() => Promise.resolve([]));
-      const startIndex = 0;
-      const itemsPerPage = 25;
-      const searchTerm = "O'Riley";
-      const columnName = "date_created";
-      const direction = "DESC";
 
       await listEcrData(
         startIndex,
@@ -438,76 +399,77 @@ describe("listEcrDataService", () => {
   });
 
   describe("get total ecr count", () => {
+    beforeAll(async () => {
+      process.env.METADATA_DATABASE_TYPE = "postgres";
+      await db.schema
+        .createTable("ecr_viewer.ecr_data")
+        .addColumn("eicr_id", "varchar(200)", (cb) => cb.primaryKey())
+        .addColumn("set_id", "varchar(255)")
+        .addColumn("eicr_version_number", "varchar(50)")
+        .addColumn("data_source", "varchar(2)") // S3 or DB
+        .addColumn("fhir_reference_link", "varchar(500)")
+        .addColumn("patient_name_first", "varchar(100)")
+        .addColumn("patient_name_last", "varchar(100)")
+        .addColumn("patient_birth_date", "date")
+        .addColumn("date_created", "timestamptz", (cb) =>
+          cb.notNull().defaultTo(sql`NOW()`),
+        )
+        .addColumn("report_date", "date")
+        .execute();
+      await db.schema
+        .createTable("ecr_viewer.ecr_rr_conditions")
+        .addColumn("uuid", "varchar(200)", (cb) => cb.primaryKey())
+        .addColumn("eicr_id", "varchar(255)", (cb) => cb.notNull())
+        .addColumn("condition", "varchar")
+        .execute();
+      await db.schema
+        .createTable("ecr_viewer.ecr_rr_rule_summaries")
+        .addColumn("uuid", "varchar(200)", (cb) => cb.primaryKey())
+        .addColumn("ecr_rr_conditions_id", "varchar(200)")
+        .addColumn("rule_summary", "varchar")
+        .execute();
+    });
+    afterAll( async () => {
+      delete process.env.METADATA_DATABASE_TYPE;
+      await db.schema.dropTable("ecr_viewer.ecr_data").execute();
+      await db.schema.dropTable("ecr_viewer.ecr_rr_conditions").execute();
+      await db.schema.dropTable("ecr_viewer.ecr_rr_rule_summaries").execute();
+    });
+
     it("should call db to get all ecrs", async () => {
-      // @ts-ignore TS2364
-      database.one<{ count: number }> = jest.fn(() =>
-        Promise.resolve({ count: 0 }),
-      );
-      await getTotalEcrCount(testDateRange);
-      expect(database.one).toHaveBeenCalledOnce();
-      expect(database.one).toHaveBeenCalledWith(
-        "SELECT count(DISTINCT ed.eICR_ID) FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE $[whereClause]",
-        { whereClause: expect.any(Object) },
-      );
+      const actual = await getTotalEcrCount(testDateRange);
+      expect(actual).toEqual("0");
     });
     it("should use search term in count query", async () => {
       // @ts-ignore TS2364
-      database.one<{ count: number }> = jest.fn(() =>
-        Promise.resolve({ count: 0 }),
-      );
-      await getTotalEcrCount(testDateRange, "blah", undefined);
-      expect(database.one).toHaveBeenCalledOnce();
-      expect(database.one).toHaveBeenCalledWith(
-        "SELECT count(DISTINCT ed.eICR_ID) FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE $[whereClause]",
-        {
-          whereClause: expect.any(Object),
-        },
-      );
+      const actual = await getTotalEcrCount(testDateRange, "blah", undefined);
+      expect(actual).toEqual("0");
     });
     it("should escape the search term in count query", async () => {
       // @ts-ignore TS2364
-      database.one<{ count: number }> = jest.fn(() =>
-        Promise.resolve({ count: 0 }),
-      );
-      await getTotalEcrCount(testDateRange, "O'Riley", undefined);
-      expect(database.one).toHaveBeenCalledOnce();
-      expect(database.one).toHaveBeenCalledWith(
-        "SELECT count(DISTINCT ed.eICR_ID) FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE $[whereClause]",
-        {
-          whereClause: expect.any(Object),
-        },
-      );
+      const actual = await getTotalEcrCount(testDateRange, "O'Riley", undefined);
+      expect(actual).toEqual("0");
     });
     it("should use filter conditions in count query", async () => {
       // @ts-ignore TS2364
-      database.one<{ count: number }> = jest.fn(() =>
-        Promise.resolve({ count: 0 }),
-      );
-      await getTotalEcrCount(testDateRange, "", ["Anthrax (disorder)"]);
-      expect(database.one).toHaveBeenCalledOnce();
-
-      expect(database.one).toHaveBeenCalledWith(
-        "SELECT count(DISTINCT ed.eICR_ID) FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE $[whereClause]",
-        {
-          whereClause: expect.any(Object),
-        },
-      );
+      const actual = await getTotalEcrCount(testDateRange, "", ["Anthrax (disorder)"]);
+      expect(actual).toEqual("0");
     });
   });
 
   describe("generate search statement", () => {
     it("should use the search term in the search statement", () => {
-      expect(generateSearchStatement("Dan").toPostgres()).toEqual(
+      expect(generateSearchStatement("Dan")).toEqual(
         "ed.patient_name_first ILIKE '%Dan%' OR ed.patient_name_last ILIKE '%Dan%'",
       );
     });
     it("should escape characters when an apostrophe is added", () => {
-      expect(generateSearchStatement("O'Riley").toPostgres()).toEqual(
+      expect(generateSearchStatement("O'Riley")).toEqual(
         "ed.patient_name_first ILIKE '%O''Riley%' OR ed.patient_name_last ILIKE '%O''Riley%'",
       );
     });
     it("should only generate true statements when no search is provided", () => {
-      expect(generateSearchStatement("").toPostgres()).toEqual(
+      expect(generateSearchStatement("")).toEqual(
         "NULL IS NULL OR NULL IS NULL",
       );
     });
@@ -516,19 +478,19 @@ describe("listEcrDataService", () => {
   describe("generate filter conditions statement", () => {
     it("should add conditions in the filter statement", () => {
       expect(
-        generateFilterConditionsStatement(["Anthrax (disorder)"]).toPostgres(),
+        generateFilterConditionsStatement(["Anthrax (disorder)"])
       ).toEqual(
         "ed.eICR_ID IN (SELECT DISTINCT ed_sub.eICR_ID FROM ecr_viewer.ecr_data ed_sub LEFT JOIN ecr_viewer.ecr_rr_conditions erc_sub ON ed_sub.eICR_ID = erc_sub.eICR_ID WHERE erc_sub.condition IS NOT NULL AND (erc_sub.condition ILIKE '%Anthrax (disorder)%'))",
       );
     });
     it("should only look for eCRs with no conditions when de-selecting all conditions on filter", () => {
-      expect(generateFilterConditionsStatement([""]).toPostgres()).toEqual(
+      expect(generateFilterConditionsStatement([""])).toEqual(
         "ed.eICR_ID NOT IN (SELECT DISTINCT erc_sub.eICR_ID FROM ecr_viewer.ecr_rr_conditions erc_sub WHERE erc_sub.condition IS NOT NULL)",
       );
     });
     it("should add date range in the filter statement", () => {
       expect(
-        generateFilterDateStatementPostgres(testDateRange).toPostgres(),
+        generateFilterDateStatementPostgres(testDateRange)
       ).toEqual(
         "ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00'",
       );
@@ -537,9 +499,9 @@ describe("listEcrDataService", () => {
       expect(
         generateWhereStatementPostgres(
           testDateRange,
-          "",
+          "", 
           undefined,
-        ).toPostgres(),
+        )
       ).toEqual(
         "(NULL IS NULL OR NULL IS NULL) AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (NULL IS NULL)",
       );
@@ -551,7 +513,7 @@ describe("listEcrDataService", () => {
       expect(
         generateWhereStatementPostgres(testDateRange, "blah", [
           "Anthrax (disorder)",
-        ]).toPostgres(),
+        ]),
       ).toEqual(
         "(ed.patient_name_first ILIKE '%blah%' OR ed.patient_name_last ILIKE '%blah%') AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (ed.eICR_ID IN (SELECT DISTINCT ed_sub.eICR_ID FROM ecr_viewer.ecr_data ed_sub LEFT JOIN ecr_viewer.ecr_rr_conditions erc_sub ON ed_sub.eICR_ID = erc_sub.eICR_ID WHERE erc_sub.condition IS NOT NULL AND (erc_sub.condition ILIKE '%Anthrax (disorder)%')))",
       );
@@ -562,7 +524,7 @@ describe("listEcrDataService", () => {
           testDateRange,
           "blah",
           undefined,
-        ).toPostgres(),
+        ),
       ).toEqual(
         "(ed.patient_name_first ILIKE '%blah%' OR ed.patient_name_last ILIKE '%blah%') AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (NULL IS NULL)",
       );
@@ -571,7 +533,7 @@ describe("listEcrDataService", () => {
       expect(
         generateWhereStatementPostgres(testDateRange, "", [
           "Anthrax (disorder)",
-        ]).toPostgres(),
+        ]),
       ).toEqual(
         "(NULL IS NULL OR NULL IS NULL) AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (ed.eICR_ID IN (SELECT DISTINCT ed_sub.eICR_ID FROM ecr_viewer.ecr_data ed_sub LEFT JOIN ecr_viewer.ecr_rr_conditions erc_sub ON ed_sub.eICR_ID = erc_sub.eICR_ID WHERE erc_sub.condition IS NOT NULL AND (erc_sub.condition ILIKE '%Anthrax (disorder)%')))",
       );

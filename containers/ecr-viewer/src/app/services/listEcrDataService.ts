@@ -1,7 +1,9 @@
 import { getDB } from "@/app/data/db/postgres_db";
 import { get_pool } from "@/app/data/db/sqlserver_db";
 import { DateRangePeriod } from "@/app/utils/date-utils";
-
+import { Kysely, sql } from "kysely";
+import { db } from "@/app/api/services/database";
+import { Core } from "@/app/api/services/types";
 import { formatDate, formatDateTime } from "./formatDateService";
 
 export interface CoreMetadataModel {
@@ -103,21 +105,16 @@ async function listEcrDataPostgres(
   searchTerm?: string,
   filterConditions?: string[],
 ): Promise<EcrDisplay[]> {
-  const { database } = getDB();
-  const list = await database.manyOrNone<CoreMetadataModel>(
-    "SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE $[whereClause] GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number $[sortStatement] OFFSET $[startIndex] ROWS FETCH NEXT $[itemsPerPage] ROWS ONLY",
-    {
-      whereClause: generateWhereStatementPostgres(
-        filterDates,
-        searchTerm,
-        filterConditions,
-      ),
-      startIndex,
-      itemsPerPage,
-      sortStatement: generateSortStatement(sortColumn, sortDirection),
-    },
-  );
-
+  const whereClause = generateWhereStatementPostgres(
+    filterDates,
+    searchTerm,
+    filterConditions,
+  )
+  const sortStatement = generateSortStatement(sortColumn, sortDirection)
+  const queryString = `SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE ${whereClause} GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number ${sortStatement} OFFSET ${startIndex.toString()} ROWS FETCH NEXT ${itemsPerPage.toString()} ROWS ONLY`
+  // console.log(queryString)
+  const result = await sql.raw<CoreMetadataModel>(queryString).execute(db)
+  const list = result.rows;
   return processCoreMetadata(list);
 }
 
@@ -255,18 +252,16 @@ const getTotalEcrCountPostgres = async (
   searchTerm?: string,
   filterConditions?: string[],
 ): Promise<number> => {
-  const { database } = getDB();
-  const number = await database.one(
-    "SELECT count(DISTINCT ed.eICR_ID) FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE $[whereClause]",
-    {
-      whereClause: generateWhereStatementPostgres(
-        filterDates,
-        searchTerm,
-        filterConditions,
-      ),
-    },
+  var whereClause = generateWhereStatementPostgres(
+    filterDates,
+    searchTerm,
+    filterConditions,
   );
-  return number.count;
+  const result = await sql<{ count: number }>`
+  SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${sql.raw(whereClause)}
+  `.execute(db)
+
+  return result.rows[0].count;
 };
 
 const getTotalEcrCountSqlServer = async (
@@ -305,19 +300,17 @@ export const generateWhereStatementPostgres = (
   filterDates: DateRangePeriod,
   searchTerm?: string,
   filterConditions?: string[],
-) => ({
-  rawType: true,
-  toPostgres: () => {
-    const statementSearch = generateSearchStatement(searchTerm).toPostgres();
-    const statementConditions = filterConditions
-      ? generateFilterConditionsStatement(filterConditions).toPostgres()
-      : "NULL IS NULL";
-    const statementDate =
-      generateFilterDateStatementPostgres(filterDates).toPostgres();
+) => {
+  const statementSearch = generateSearchStatement(searchTerm);
+  const statementConditions = filterConditions
+    ? generateFilterConditionsStatement(filterConditions)
+    : "NULL IS NULL";
+  const statementDate =
+    generateFilterDateStatementPostgres(filterDates);
+  
+  return `(${statementSearch}) AND (${statementDate}) AND (${statementConditions})`;
+}
 
-    return `(${statementSearch}) AND (${statementDate}) AND (${statementConditions})`;
-  },
-});
 
 /**
  *  Generate where statement for SQL Server
@@ -345,24 +338,18 @@ const generateWhereStatementSqlServer = (
  * @param searchTerm - Optional search term used to filter
  * @returns custom type format object for use by pg-promise
  */
-export const generateSearchStatement = (searchTerm?: string) => ({
-  rawType: true,
-  toPostgres: () => {
-    const { pgPromise } = getDB();
-    const searchFields = ["ed.patient_name_first", "ed.patient_name_last"];
-    return searchFields
-      .map((field) => {
-        if (!searchTerm) {
-          return pgPromise.as.format("NULL IS NULL");
-        }
-        return pgPromise.as.format("$[field:raw] ILIKE $[searchTerm]", {
-          searchTerm: `%${searchTerm}%`,
-          field,
-        });
-      })
-      .join(" OR ");
-  },
-});
+export const generateSearchStatement = (searchTerm?: string) => {
+  const searchFields = ["ed.patient_name_first", "ed.patient_name_last"];
+  return searchFields
+    .map((field) => {
+      if (!searchTerm) {
+        return `NULL IS NULL`;
+      }
+      const escapedSearchTerm = searchTerm.replace(/'/g, "''");
+      return `${field} ILIKE '%${escapedSearchTerm}%'`;
+    })
+    .join(" OR ");
+};
 
 const generateSearchStatementSqlServer = (searchTerm?: string) => {
   const searchFields = ["ed.first_name", "ed.last_name"];
@@ -383,10 +370,7 @@ const generateSearchStatementSqlServer = (searchTerm?: string) => {
  */
 export const generateFilterConditionsStatement = (
   filterConditions: string[],
-) => ({
-  rawType: true,
-  toPostgres: () => {
-    const { pgPromise } = getDB();
+) => {
     if (
       Array.isArray(filterConditions) &&
       filterConditions.every((item) => item === "")
@@ -397,15 +381,12 @@ export const generateFilterConditionsStatement = (
 
     const whereStatement = filterConditions
       .map((condition) => {
-        return pgPromise.as.format("erc_sub.condition ILIKE $[condition]", {
-          condition: `%${condition}%`,
-        });
+        return `erc_sub.condition ILIKE '%${condition}%'`;
       })
       .join(" OR ");
     const subQuery = `SELECT DISTINCT ed_sub.eICR_ID FROM ecr_viewer.ecr_data ed_sub LEFT JOIN ecr_viewer.ecr_rr_conditions erc_sub ON ed_sub.eICR_ID = erc_sub.eICR_ID WHERE erc_sub.condition IS NOT NULL AND (${whereStatement})`;
     return `ed.eICR_ID IN (${subQuery})`;
-  },
-});
+  };
 
 const generateFilterConditionsStatementSqlServer = (
   filterConditions: string[],
@@ -437,21 +418,12 @@ const generateFilterConditionsStatementSqlServer = (
 export const generateFilterDateStatementPostgres = ({
   startDate,
   endDate,
-}: DateRangePeriod) => ({
-  rawType: true,
-  toPostgres: () => {
-    const { pgPromise } = getDB();
-
-    return [
-      pgPromise.as.format("ed.date_created >= $[startDate]", {
-        startDate,
-      }),
-      pgPromise.as.format("ed.date_created <= $[endDate]", {
-        endDate,
-      }),
-    ].join(" AND ");
-  },
-});
+}: DateRangePeriod) => {
+  return [
+    `ed.date_created >= '${startDate.toISOString().replace("Z", "-05:00").replace("T05", "T00")}'`,
+    `ed.date_created <= '${endDate.toISOString().replace("Z", "-05:00").replace("T05", "T00")}'`,
+  ].join(" AND ");
+};
 
 const generateFilterDateStatementSqlServer = ({
   startDate,
@@ -472,35 +444,25 @@ const generateFilterDateStatementSqlServer = ({
 export const generateSortStatement = (
   columnName: string,
   direction: string,
-) => ({
-  rawType: true,
-  toPostgres: () => {
-    const { pgPromise } = getDB();
-    // Valid columns and directions
-    const validColumns = ["patient", "date_created", "report_date"];
-    const validDirections = ["ASC", "DESC"];
+) => {
+  const validColumns = ["patient", "date_created", "report_date"];
+  const validDirections = ["ASC", "DESC"];
 
-    // Validation check
-    if (!validColumns.includes(columnName)) {
-      columnName = "date_created";
-    }
-    if (!validDirections.includes(direction)) {
-      direction = "DESC";
-    }
+  // Validation check
+  if (!validColumns.includes(columnName)) {
+    columnName = "date_created";
+  }
+  if (!validDirections.includes(direction)) {
+    direction = "DESC";
+  }
 
-    if (columnName === "patient") {
-      return pgPromise.as.format(
-        `ORDER BY ed.patient_name_last ${direction}, ed.patient_name_first ${direction}`,
-        { direction },
-      );
-    }
+  if (columnName === "patient") {
+    return `ORDER BY ed.patient_name_last ${direction}, ed.patient_name_first ${direction}`
+  }
 
-    // Default case for other columns
-    return pgPromise.as.format(`ORDER BY $[columnName:raw] ${direction}`, {
-      columnName,
-    });
-  },
-});
+  // Default case for other columns
+  return `ORDER BY ${columnName} ${direction}`;
+};
 
 const generateSqlServerSortStatement = (
   columnName: string,
