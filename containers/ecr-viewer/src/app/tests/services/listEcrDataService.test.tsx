@@ -145,7 +145,7 @@ describe("listEcrDataService", () => {
         .execute();
     });
 
-    afterAll( async () => {
+    afterAll(async () => {
       delete process.env.METADATA_DATABASE_TYPE;
       await db.schema.dropTable("ecr_viewer.ecr_data").execute();
       await db.schema.dropTable("ecr_viewer.ecr_rr_conditions").execute();
@@ -171,21 +171,21 @@ describe("listEcrDataService", () => {
 
     it("should return data when found", async () => {
       const insert = await db
-      .insertInto("ecr_viewer.ecr_data")
-      .values({
-        eicr_id: "12345",
-        set_id: "123",
-        data_source: "DB",
-        fhir_reference_link: "",
-        eicr_version_number: "1",
-        patient_name_first: "Billy",
-        patient_name_last: "Bob",
-        patient_birth_date: new Date("2024-12-01T12:00:00Z"),
-        date_created: new Date("2024-12-01T12:00:00Z"),
-        report_date: new Date("2024-12-01T12:00:00Z"),
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
+        .insertInto("ecr_viewer.ecr_data")
+        .values({
+          eicr_id: "12345",
+          set_id: "123",
+          data_source: "DB",
+          fhir_reference_link: "",
+          eicr_version_number: "1",
+          patient_name_first: "Billy",
+          patient_name_last: "Bob",
+          patient_birth_date: new Date("2024-12-01T12:00:00Z"),
+          date_created: new Date("2024-12-01T12:00:00Z"),
+          report_date: new Date("2024-12-01T12:00:00Z"),
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
 
       console.log(insert);
       // @ts-ignore TS2364
@@ -212,7 +212,7 @@ describe("listEcrDataService", () => {
           rule_summaries: [],
           eicr_set_id: "123",
           eicr_version_number: "1",
-        }
+        },
       ]);
     });
 
@@ -429,7 +429,7 @@ describe("listEcrDataService", () => {
         .addColumn("rule_summary", "varchar")
         .execute();
     });
-    afterAll( async () => {
+    afterAll(async () => {
       delete process.env.METADATA_DATABASE_TYPE;
       await db.schema.dropTable("ecr_viewer.ecr_data").execute();
       await db.schema.dropTable("ecr_viewer.ecr_rr_conditions").execute();
@@ -447,12 +447,18 @@ describe("listEcrDataService", () => {
     });
     it("should escape the search term in count query", async () => {
       // @ts-ignore TS2364
-      const actual = await getTotalEcrCount(testDateRange, "O'Riley", undefined);
+      const actual = await getTotalEcrCount(
+        testDateRange,
+        "O'Riley",
+        undefined,
+      );
       expect(actual).toEqual("0");
     });
     it("should use filter conditions in count query", async () => {
       // @ts-ignore TS2364
-      const actual = await getTotalEcrCount(testDateRange, "", ["Anthrax (disorder)"]);
+      const actual = await getTotalEcrCount(testDateRange, "", [
+        "Anthrax (disorder)",
+      ]);
       expect(actual).toEqual("0");
     });
   });
@@ -477,9 +483,7 @@ describe("listEcrDataService", () => {
 
   describe("generate filter conditions statement", () => {
     it("should add conditions in the filter statement", () => {
-      expect(
-        generateFilterConditionsStatement(["Anthrax (disorder)"])
-      ).toEqual(
+      expect(generateFilterConditionsStatement(["Anthrax (disorder)"])).toEqual(
         "ed.eICR_ID IN (SELECT DISTINCT ed_sub.eICR_ID FROM ecr_viewer.ecr_data ed_sub LEFT JOIN ecr_viewer.ecr_rr_conditions erc_sub ON ed_sub.eICR_ID = erc_sub.eICR_ID WHERE erc_sub.condition IS NOT NULL AND (erc_sub.condition ILIKE '%Anthrax (disorder)%'))",
       );
     });
@@ -489,19 +493,13 @@ describe("listEcrDataService", () => {
       );
     });
     it("should add date range in the filter statement", () => {
-      expect(
-        generateFilterDateStatementPostgres(testDateRange)
-      ).toEqual(
+      expect(generateFilterDateStatementPostgres(testDateRange)).toEqual(
         "ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00'",
       );
     });
     it("should display all conditions in date range by default if no filter has been added", () => {
       expect(
-        generateWhereStatementPostgres(
-          testDateRange,
-          "", 
-          undefined,
-        )
+        generateWhereStatementPostgres(testDateRange, "", undefined),
       ).toEqual(
         "(NULL IS NULL OR NULL IS NULL) AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (NULL IS NULL)",
       );
@@ -520,11 +518,7 @@ describe("listEcrDataService", () => {
     });
     it("should generate where statement using search statement (no conditions filter provided)", () => {
       expect(
-        generateWhereStatementPostgres(
-          testDateRange,
-          "blah",
-          undefined,
-        ),
+        generateWhereStatementPostgres(testDateRange, "blah", undefined),
       ).toEqual(
         "(ed.patient_name_first ILIKE '%blah%' OR ed.patient_name_last ILIKE '%blah%') AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (NULL IS NULL)",
       );

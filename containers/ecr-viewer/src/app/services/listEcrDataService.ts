@@ -109,11 +109,11 @@ async function listEcrDataPostgres(
     filterDates,
     searchTerm,
     filterConditions,
-  )
-  const sortStatement = generateSortStatement(sortColumn, sortDirection)
-  const queryString = `SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE ${whereClause} GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number ${sortStatement} OFFSET ${startIndex.toString()} ROWS FETCH NEXT ${itemsPerPage.toString()} ROWS ONLY`
+  );
+  const sortStatement = generateSortStatement(sortColumn, sortDirection);
+  const queryString = `SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE ${whereClause} GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number ${sortStatement} OFFSET ${startIndex.toString()} ROWS FETCH NEXT ${itemsPerPage.toString()} ROWS ONLY`;
   // console.log(queryString)
-  const result = await sql.raw<CoreMetadataModel>(queryString).execute(db)
+  const result = await sql.raw<CoreMetadataModel>(queryString).execute(db);
   const list = result.rows;
   return processCoreMetadata(list);
 }
@@ -258,8 +258,10 @@ const getTotalEcrCountPostgres = async (
     filterConditions,
   );
   const result = await sql<{ count: number }>`
-  SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${sql.raw(whereClause)}
-  `.execute(db)
+  SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${sql.raw(
+    whereClause,
+  )}
+  `.execute(db);
 
   return result.rows[0].count;
 };
@@ -305,12 +307,10 @@ export const generateWhereStatementPostgres = (
   const statementConditions = filterConditions
     ? generateFilterConditionsStatement(filterConditions)
     : "NULL IS NULL";
-  const statementDate =
-    generateFilterDateStatementPostgres(filterDates);
-  
-  return `(${statementSearch}) AND (${statementDate}) AND (${statementConditions})`;
-}
+  const statementDate = generateFilterDateStatementPostgres(filterDates);
 
+  return `(${statementSearch}) AND (${statementDate}) AND (${statementConditions})`;
+};
 
 /**
  *  Generate where statement for SQL Server
@@ -371,22 +371,22 @@ const generateSearchStatementSqlServer = (searchTerm?: string) => {
 export const generateFilterConditionsStatement = (
   filterConditions: string[],
 ) => {
-    if (
-      Array.isArray(filterConditions) &&
-      filterConditions.every((item) => item === "")
-    ) {
-      const subQuery = `SELECT DISTINCT erc_sub.eICR_ID FROM ecr_viewer.ecr_rr_conditions erc_sub WHERE erc_sub.condition IS NOT NULL`;
-      return `ed.eICR_ID NOT IN (${subQuery})`;
-    }
+  if (
+    Array.isArray(filterConditions) &&
+    filterConditions.every((item) => item === "")
+  ) {
+    const subQuery = `SELECT DISTINCT erc_sub.eICR_ID FROM ecr_viewer.ecr_rr_conditions erc_sub WHERE erc_sub.condition IS NOT NULL`;
+    return `ed.eICR_ID NOT IN (${subQuery})`;
+  }
 
-    const whereStatement = filterConditions
-      .map((condition) => {
-        return `erc_sub.condition ILIKE '%${condition}%'`;
-      })
-      .join(" OR ");
-    const subQuery = `SELECT DISTINCT ed_sub.eICR_ID FROM ecr_viewer.ecr_data ed_sub LEFT JOIN ecr_viewer.ecr_rr_conditions erc_sub ON ed_sub.eICR_ID = erc_sub.eICR_ID WHERE erc_sub.condition IS NOT NULL AND (${whereStatement})`;
-    return `ed.eICR_ID IN (${subQuery})`;
-  };
+  const whereStatement = filterConditions
+    .map((condition) => {
+      return `erc_sub.condition ILIKE '%${condition}%'`;
+    })
+    .join(" OR ");
+  const subQuery = `SELECT DISTINCT ed_sub.eICR_ID FROM ecr_viewer.ecr_data ed_sub LEFT JOIN ecr_viewer.ecr_rr_conditions erc_sub ON ed_sub.eICR_ID = erc_sub.eICR_ID WHERE erc_sub.condition IS NOT NULL AND (${whereStatement})`;
+  return `ed.eICR_ID IN (${subQuery})`;
+};
 
 const generateFilterConditionsStatementSqlServer = (
   filterConditions: string[],
@@ -420,8 +420,14 @@ export const generateFilterDateStatementPostgres = ({
   endDate,
 }: DateRangePeriod) => {
   return [
-    `ed.date_created >= '${startDate.toISOString().replace("Z", "-05:00").replace("T05", "T00")}'`,
-    `ed.date_created <= '${endDate.toISOString().replace("Z", "-05:00").replace("T05", "T00")}'`,
+    `ed.date_created >= '${startDate
+      .toISOString()
+      .replace("Z", "-05:00")
+      .replace("T05", "T00")}'`,
+    `ed.date_created <= '${endDate
+      .toISOString()
+      .replace("Z", "-05:00")
+      .replace("T05", "T00")}'`,
   ].join(" AND ");
 };
 
@@ -457,7 +463,7 @@ export const generateSortStatement = (
   }
 
   if (columnName === "patient") {
-    return `ORDER BY ed.patient_name_last ${direction}, ed.patient_name_first ${direction}`
+    return `ORDER BY ed.patient_name_last ${direction}, ed.patient_name_first ${direction}`;
   }
 
   // Default case for other columns
