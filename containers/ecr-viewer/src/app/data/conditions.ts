@@ -2,6 +2,7 @@ import { Kysely } from "kysely";
 
 import { db } from "@/app/api/services/database";
 import { Extended } from "@/app/api/services/extended_types";
+import { Core } from "@/app/api/services/core_types";
 
 /**
  * Retrieves all unique conditions from the ecr_rr_conditions table.
@@ -12,7 +13,7 @@ export const getAllConditions = async (): Promise<string[]> => {
     throw Error("Database type is undefined.");
   } else {
     try {
-      const result = await (db as Kysely<Extended>)
+      const result = await (db as Kysely<Core | Extended>)
         .transaction()
         .execute(async (trx) => {
           // Possible fetch errors if using Core since this applies for both?
