@@ -8,7 +8,7 @@ import { db } from "@/app/api/services/database";
 import { Extended } from "@/app/api/services/extended_types";
 import { s3Client } from "@/app/data/blobStorage/s3Client";
 import { azureBlobContainerClient } from "@/app/data/blobStorage/azureClient";
-import { Core } from "@/app/api/services/types";
+import { Core } from "@/app/api/services/core_types";
 import { S3_SOURCE, AZURE_SOURCE } from "@/app/api/utils";
 
 import { BundleExtendedMetadata, BundleMetadata } from "./types";
@@ -169,13 +169,6 @@ const saveFhirMetadata = async (
     };
   }
 };
-/*
-TODO
-- write saveCoreMetadata
-- write saveExtendedMetadata (both of these can be collapsed from their old selves since Kysely does most of the work now)
-- change their references
-- search for any other instances of pg pool and mssql pool and change them to kysely
-*/
 
 /**
  * @async
@@ -418,9 +411,6 @@ export const saveCoreMetadata = async (
           }
         }
       })
-      .catch((_) => {
-        throw new Error("Transaction failed");
-      });
     return {
       message: "Success. Saved metadata to database.",
       status: 200,

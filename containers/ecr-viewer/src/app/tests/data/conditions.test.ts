@@ -2,18 +2,13 @@
  * @jest-environment node
  */
 
-import { db } from "@/app/api/services/database";
+import { buildCore, dropCore } from "@/app/api/services/db_schema";
 import { createEcrCondition } from "@/app/api/services/extended_database_repo";
 import { getAllConditions } from "@/app/data/conditions";
 
 describe("Conditions service", () => {
   beforeAll(async () => {
-    await db.schema
-      .createTable("ecr_rr_conditions")
-      .addColumn("uuid", "varchar(200)", (cb) => cb.primaryKey())
-      .addColumn("eICR_ID", "varchar(255)", (cb) => cb.notNull())
-      .addColumn("condition", "varchar")
-      .execute();
+    await buildCore();
     await createEcrCondition({
       eICR_ID: "12345",
       uuid: "12345",
@@ -27,7 +22,7 @@ describe("Conditions service", () => {
   });
 
   afterAll(async () => {
-    await db.schema.dropTable("ecr_rr_conditions").execute();
+    await dropCore();
   });
 
   it("Should throw an error if the database type is undefined", async () => {

@@ -12,10 +12,6 @@ import {
 import { AZURE_SOURCE, S3_SOURCE } from "@/app/api/utils";
 import { s3Client } from "@/app/data/blobStorage/s3Client";
 
-jest.mock("../../../data/db/postgres_db", () => ({
-  getDB: jest.fn(),
-}));
-
 jest.mock("../../../data/blobStorage/s3Client");
 
 jest.mock("@azure/storage-blob", () => ({

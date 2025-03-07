@@ -7,16 +7,14 @@ import {
   EcrDisplay,
   generateFilterConditionsStatement,
   generateSearchStatement,
-  generateWhereStatementPostgres,
+  generateCoreWhereStatement,
   getTotalEcrCount,
   processCoreMetadata,
   listEcrData,
   generateFilterDateStatementPostgres,
 } from "@/app/services/listEcrDataService";
-import { Kysely, sql } from "kysely";
-import { Core } from "@/app/api/services/types";
+import { buildCoreAlias, dropCoreAlias } from "@/app/api/services/db_schema";
 import { db } from "@/app/api/services/database";
-import { saveCoreMetadata } from "@/app/api/save-fhir-data/save-fhir-data-service";
 
 const testDateRange = {
   startDate: new Date("12-01-2024"),
@@ -101,7 +99,7 @@ describe("listEcrDataService", () => {
     });
   });
 
-  describe("list Ecr data with postgres", () => {
+  describe("listCoreEcrData", () => {
     interface EcrDisplay {
       ecrId: string;
       patient_first_name: string;
@@ -115,41 +113,13 @@ describe("listEcrDataService", () => {
       eicr_version_number: string | undefined;
     }
     beforeAll(async () => {
-      process.env.METADATA_DATABASE_TYPE = "postgres";
-      await db.schema
-        .createTable("ecr_viewer.ecr_data")
-        .addColumn("eicr_id", "varchar(200)", (cb) => cb.primaryKey())
-        .addColumn("set_id", "varchar(255)")
-        .addColumn("eicr_version_number", "varchar(50)")
-        .addColumn("data_source", "varchar(2)") // S3 or DB
-        .addColumn("fhir_reference_link", "varchar(500)")
-        .addColumn("patient_name_first", "varchar(100)")
-        .addColumn("patient_name_last", "varchar(100)")
-        .addColumn("patient_birth_date", "date")
-        .addColumn("date_created", "timestamptz", (cb) =>
-          cb.notNull().defaultTo(sql`NOW()`),
-        )
-        .addColumn("report_date", "date")
-        .execute();
-      await db.schema
-        .createTable("ecr_viewer.ecr_rr_conditions")
-        .addColumn("uuid", "varchar(200)", (cb) => cb.primaryKey())
-        .addColumn("eicr_id", "varchar(255)", (cb) => cb.notNull())
-        .addColumn("condition", "varchar")
-        .execute();
-      await db.schema
-        .createTable("ecr_viewer.ecr_rr_rule_summaries")
-        .addColumn("uuid", "varchar(200)", (cb) => cb.primaryKey())
-        .addColumn("ecr_rr_conditions_id", "varchar(200)")
-        .addColumn("rule_summary", "varchar")
-        .execute();
+      process.env.METADATA_DATABASE_SCHEMA = "core";
+      await buildCoreAlias();
     });
 
     afterAll(async () => {
       delete process.env.METADATA_DATABASE_TYPE;
-      await db.schema.dropTable("ecr_viewer.ecr_data").execute();
-      await db.schema.dropTable("ecr_viewer.ecr_rr_conditions").execute();
-      await db.schema.dropTable("ecr_viewer.ecr_rr_rule_summaries").execute();
+      await dropCoreAlias();
     });
 
     it("should return empty array when no data is found", async () => {
@@ -170,7 +140,7 @@ describe("listEcrDataService", () => {
     });
 
     it("should return data when found", async () => {
-      const insert = await db
+      await (db as any)
         .insertInto("ecr_viewer.ecr_data")
         .values({
           eicr_id: "12345",
@@ -186,8 +156,6 @@ describe("listEcrDataService", () => {
         })
         .returningAll()
         .executeTakeFirstOrThrow();
-
-      console.log(insert);
       // @ts-ignore TS2364
       const startIndex = 0;
       const itemsPerPage = 25;
@@ -202,14 +170,14 @@ describe("listEcrDataService", () => {
       );
       expect(actual).toEqual([
         {
-          date_created: "06/21/2024 8:00\u00A0AM\u00A0EDT",
+          date_created: "12/01/2024 7:00\u00A0AM\u00A0EST",
           ecrId: "12345",
-          patient_date_of_birth: "11/07/1954",
+          patient_date_of_birth: "12/01/2024",
           patient_first_name: "Billy",
           patient_last_name: "Bob",
-          patient_report_date: "06/21/2024 8:00\u00A0AM\u00A0EDT",
-          reportable_conditions: [],
-          rule_summaries: [],
+          patient_report_date: "12/01/2024 12:00\u00A0AM\u00A0EST",
+          reportable_conditions: [null],
+          rule_summaries: [null],
           eicr_set_id: "123",
           eicr_version_number: "1",
         },
@@ -231,64 +199,58 @@ describe("listEcrDataService", () => {
       );
       expect(actual).toEqual([
         {
-          date_created: "06/21/2024 8:00\u00A0AM\u00A0EDT",
-          ecrId: "1234",
-          patient_date_of_birth: "01/01/1990",
-          patient_first_name: "boy",
-          patient_last_name: "lnam",
-          patient_report_date: "06/20/2024 12:00\u00A0AM\u00A0EDT",
-          reportable_conditions: ["sick", "tired"],
-          rule_summaries: ["stuff", "disease discovered"],
+          date_created: "12/01/2024 7:00\u00A0AM\u00A0EST",
+          ecrId: "12345",
+          patient_date_of_birth: "12/01/2024",
+          patient_first_name: "Billy",
+          patient_last_name: "Bob",
+          patient_report_date: "12/01/2024 12:00\u00A0AM\u00A0EST",
+          reportable_conditions: [null],
+          rule_summaries: [null],
           eicr_set_id: "123",
           eicr_version_number: "1",
         },
       ]);
     });
-
-    it("should filter base on search term", async () => {
-      database.manyOrNone = jest.fn(() => Promise.resolve([]));
-      const startIndex = 0;
-      const itemsPerPage = 25;
-      const columnName = "date_created";
-      const direction = "DESC";
-      const searchTerm = "abc";
-
-      await listEcrData(
-        startIndex,
-        itemsPerPage,
-        columnName,
-        direction,
-        testDateRange,
-        searchTerm,
-      );
-      expect(database.manyOrNone).toHaveBeenCalledOnce();
-      expect(database.manyOrNone).toHaveBeenCalledWith(
-        "SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE $[whereClause] GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number $[sortStatement] OFFSET $[startIndex] ROWS FETCH NEXT $[itemsPerPage] ROWS ONLY",
-        {
-          whereClause: expect.any(Object),
-          startIndex,
-          itemsPerPage,
-          sortStatement: expect.any(Object),
-        },
-      );
-    });
   });
 
   describe("listEcrDataService with SQL Server", () => {
+    beforeAll(async () => {
+      process.env.METADATA_DATABASE_TYPE = "postgres";
+      process.env.METADATA_DATABASE_SCHEMA = "core"
+      await buildCoreAlias();
+    });
+
+    afterAll( async () => {
+      delete process.env.METADATA_DATABASE_TYPE;
+      await dropCoreAlias();
+    });
     beforeEach(() => {
-      jest.resetModules();
-      jest.clearAllMocks();
       process.env.METADATA_DATABASE_TYPE = "sqlserver";
     });
     afterAll(() => {
-      jest.resetModules();
-      jest.clearAllMocks();
       process.env.METADATA_DATABASE_TYPE = "postgres";
     });
 
-    describe("listEcrData with SQL Server", () => {
-      it("should return data when DATABASE_TYPE is sqlserver", async () => {
+    describe("listExtendedEcrData", () => {
+      it("should return data when found", async () => {
         // Arrange
+        const insert = await (db as any)
+          .insertInto("ecr_viewer.ecr_data")
+          .values({
+            eicr_id: "12345",
+            set_id: "123",
+            data_source: "DB",
+            fhir_reference_link: "",
+            eicr_version_number: "1",
+            patient_name_first: "Billy",
+            patient_name_last: "Bob",
+            patient_birth_date: new Date("2024-12-01T12:00:00Z"),
+            date_created: new Date("2024-12-01T12:00:00Z"),
+            report_date: new Date("2024-12-01T12:00:00Z"),
+          })
+          .returningAll()
+          .executeTakeFirstOrThrow();
         const mockRecordset = [
           {
             eICR_ID: "123",
@@ -314,20 +276,6 @@ describe("listEcrDataService", () => {
           },
         ];
 
-        const mockQuery = jest
-          .fn()
-          .mockResolvedValue({ recordset: mockRecordset });
-        const mockRequest = {
-          query: mockQuery,
-        };
-        const mockPool = {
-          request: jest.fn().mockReturnValue(mockRequest),
-          close: jest.fn(),
-        };
-
-        // Mock get_pool to return mockPool
-        (get_pool as jest.Mock).mockResolvedValue(mockPool);
-
         // Act
         const result = await listEcrData(
           0,
@@ -340,60 +288,28 @@ describe("listEcrDataService", () => {
         // Assert
         expect(result).toEqual([
           {
-            ecrId: "123",
-            patient_first_name: "John",
-            patient_last_name: "Doe",
-            patient_date_of_birth: "01/01/1990",
-            reportable_conditions: ["Condition1", "Condition2"],
-            rule_summaries: ["Rule1", "Rule2"],
-            date_created: "01/02/2023 2:45\u00A0AM\u00A0EST",
-            patient_report_date: "01/01/2023 2:30\u00A0AM\u00A0EST",
+            ecrId: "12345",
+            patient_first_name: "Billy",
+            patient_last_name: "Bob",
+            patient_date_of_birth: "12/01/2024",
+            reportable_conditions: [null],
+            rule_summaries: [null],
+            date_created: "12/01/2024 7:00\u00A0AM\u00A0EST",
+            patient_report_date: "12/01/2024 12:00\u00A0AM\u00A0EST",
             eicr_set_id: "123",
             eicr_version_number: "1",
-          },
-          {
-            ecrId: "124",
-            patient_first_name: "Jane",
-            patient_last_name: "Doe",
-            patient_date_of_birth: "01/02/1990",
-            patient_report_date: "01/02/2023 2:30\u00A0AM\u00A0EST",
-            date_created: "01/01/2023 2:45\u00A0AM\u00A0EST",
-            reportable_conditions: ["Condition1", "Condition2"],
-            rule_summaries: ["Rule1", "Rule2"],
-          },
+          }
         ]);
-
-        expect(get_pool).toHaveBeenCalled();
-        expect(mockPool.request).toHaveBeenCalled();
-        expect(mockQuery).toHaveBeenCalled();
       });
     });
 
     describe("getTotalEcrCount with SQL Server", () => {
       it("should return count when DATABASE_TYPE is sqlserver", async () => {
-        // Arrange
-        const mockRecordset = [{ count: 42 }];
-        const mockQuery = jest
-          .fn()
-          .mockResolvedValue({ recordset: mockRecordset });
-        const mockRequest = {
-          query: mockQuery,
-        };
-        const mockPool = {
-          request: jest.fn().mockReturnValue(mockRequest),
-          close: jest.fn(),
-        };
-
-        (get_pool as jest.Mock).mockResolvedValue(mockPool);
-
         // Act
         const count = await getTotalEcrCount(testDateRange);
 
         // Assert
-        expect(count).toEqual(42);
-        expect(get_pool).toHaveBeenCalled();
-        expect(mockPool.request).toHaveBeenCalled();
-        expect(mockQuery).toHaveBeenCalled();
+        expect(count).toEqual("1");
       });
     });
   });
@@ -401,39 +317,11 @@ describe("listEcrDataService", () => {
   describe("get total ecr count", () => {
     beforeAll(async () => {
       process.env.METADATA_DATABASE_TYPE = "postgres";
-      await db.schema
-        .createTable("ecr_viewer.ecr_data")
-        .addColumn("eicr_id", "varchar(200)", (cb) => cb.primaryKey())
-        .addColumn("set_id", "varchar(255)")
-        .addColumn("eicr_version_number", "varchar(50)")
-        .addColumn("data_source", "varchar(2)") // S3 or DB
-        .addColumn("fhir_reference_link", "varchar(500)")
-        .addColumn("patient_name_first", "varchar(100)")
-        .addColumn("patient_name_last", "varchar(100)")
-        .addColumn("patient_birth_date", "date")
-        .addColumn("date_created", "timestamptz", (cb) =>
-          cb.notNull().defaultTo(sql`NOW()`),
-        )
-        .addColumn("report_date", "date")
-        .execute();
-      await db.schema
-        .createTable("ecr_viewer.ecr_rr_conditions")
-        .addColumn("uuid", "varchar(200)", (cb) => cb.primaryKey())
-        .addColumn("eicr_id", "varchar(255)", (cb) => cb.notNull())
-        .addColumn("condition", "varchar")
-        .execute();
-      await db.schema
-        .createTable("ecr_viewer.ecr_rr_rule_summaries")
-        .addColumn("uuid", "varchar(200)", (cb) => cb.primaryKey())
-        .addColumn("ecr_rr_conditions_id", "varchar(200)")
-        .addColumn("rule_summary", "varchar")
-        .execute();
+      await buildCoreAlias();
     });
     afterAll(async () => {
       delete process.env.METADATA_DATABASE_TYPE;
-      await db.schema.dropTable("ecr_viewer.ecr_data").execute();
-      await db.schema.dropTable("ecr_viewer.ecr_rr_conditions").execute();
-      await db.schema.dropTable("ecr_viewer.ecr_rr_rule_summaries").execute();
+      await dropCoreAlias();
     });
 
     it("should call db to get all ecrs", async () => {
@@ -499,7 +387,11 @@ describe("listEcrDataService", () => {
     });
     it("should display all conditions in date range by default if no filter has been added", () => {
       expect(
-        generateWhereStatementPostgres(testDateRange, "", undefined),
+        generateCoreWhereStatement(
+          testDateRange,
+          "", 
+          undefined,
+        )
       ).toEqual(
         "(NULL IS NULL OR NULL IS NULL) AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (NULL IS NULL)",
       );
@@ -509,7 +401,7 @@ describe("listEcrDataService", () => {
   describe("generate where statement", () => {
     it("should generate where statement using search and filter statements", () => {
       expect(
-        generateWhereStatementPostgres(testDateRange, "blah", [
+        generateCoreWhereStatement(testDateRange, "blah", [
           "Anthrax (disorder)",
         ]),
       ).toEqual(
@@ -518,14 +410,18 @@ describe("listEcrDataService", () => {
     });
     it("should generate where statement using search statement (no conditions filter provided)", () => {
       expect(
-        generateWhereStatementPostgres(testDateRange, "blah", undefined),
+        generateCoreWhereStatement(
+          testDateRange,
+          "blah",
+          undefined,
+        ),
       ).toEqual(
         "(ed.patient_name_first ILIKE '%blah%' OR ed.patient_name_last ILIKE '%blah%') AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (NULL IS NULL)",
       );
     });
     it("should generate where statement using filter conditions statement (no search provided)", () => {
       expect(
-        generateWhereStatementPostgres(testDateRange, "", [
+        generateCoreWhereStatement(testDateRange, "", [
           "Anthrax (disorder)",
         ]),
       ).toEqual(

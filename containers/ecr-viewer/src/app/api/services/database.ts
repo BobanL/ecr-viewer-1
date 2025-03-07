@@ -6,7 +6,7 @@ import * as tarn from "tarn";
 import * as tedious from "tedious";
 
 import { Extended } from "./extended_types";
-import { Core } from "./types";
+import { Core } from "./core_types";
 
 // Dialect to communicate with the database, interface to define its structure.
 
@@ -44,7 +44,7 @@ if (process.env.METADATA_DATABASE_TYPE === "sqlserver") {
       },
     }),
   });
-} else {
+} else if (process.env.METADATA_DATABASE_TYPE === "postgres") {
   db = new Kysely<Core>({
     dialect: new PostgresDialect({
       pool: new Pool({
@@ -56,6 +56,8 @@ if (process.env.METADATA_DATABASE_TYPE === "sqlserver") {
       }),
     }),
   });
+} else {
+  throw new Error("Database type is undefined.");
 }
 
 export { db };

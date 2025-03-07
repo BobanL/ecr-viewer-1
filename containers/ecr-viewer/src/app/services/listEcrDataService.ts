@@ -1,9 +1,7 @@
-import { getDB } from "@/app/data/db/postgres_db";
-import { get_pool } from "@/app/data/db/sqlserver_db";
 import { DateRangePeriod } from "@/app/utils/date-utils";
 import { Kysely, sql } from "kysely";
 import { db } from "@/app/api/services/database";
-import { Core } from "@/app/api/services/types";
+import { Core } from "@/app/api/services/core_types";
 import { formatDate, formatDateTime } from "./formatDateService";
 
 export interface CoreMetadataModel {
@@ -68,11 +66,11 @@ export async function listEcrData(
   searchTerm?: string,
   filterConditions?: string[],
 ): Promise<EcrDisplay[]> {
-  const DATABASE_TYPE = process.env.METADATA_DATABASE_TYPE;
+  const SCHEMA_TYPE = process.env.METADATA_DATABASE_SCHEMA;
 
-  switch (DATABASE_TYPE) {
-    case "postgres":
-      return listEcrDataPostgres(
+  switch (SCHEMA_TYPE) {
+    case "core":
+      return listCoreEcrData(
         startIndex,
         itemsPerPage,
         sortColumn,
@@ -81,8 +79,8 @@ export async function listEcrData(
         searchTerm,
         filterConditions,
       );
-    case "sqlserver":
-      return listEcrDataSqlserver(
+    case "extended":
+      return listExtendedEcrData(
         startIndex,
         itemsPerPage,
         sortColumn,
@@ -96,7 +94,7 @@ export async function listEcrData(
   }
 }
 
-async function listEcrDataPostgres(
+async function listCoreEcrData(
   startIndex: number,
   itemsPerPage: number,
   sortColumn: string,
@@ -105,20 +103,19 @@ async function listEcrDataPostgres(
   searchTerm?: string,
   filterConditions?: string[],
 ): Promise<EcrDisplay[]> {
-  const whereClause = generateWhereStatementPostgres(
+  const whereClause = generateCoreWhereStatement(
     filterDates,
     searchTerm,
     filterConditions,
   );
   const sortStatement = generateSortStatement(sortColumn, sortDirection);
   const queryString = `SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE ${whereClause} GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number ${sortStatement} OFFSET ${startIndex.toString()} ROWS FETCH NEXT ${itemsPerPage.toString()} ROWS ONLY`;
-  // console.log(queryString)
   const result = await sql.raw<CoreMetadataModel>(queryString).execute(db);
   const list = result.rows;
   return processCoreMetadata(list);
 }
 
-async function listEcrDataSqlserver(
+async function listExtendedEcrData(
   startIndex: number,
   itemsPerPage: number,
   sortColumn: string,
@@ -127,8 +124,6 @@ async function listEcrDataSqlserver(
   searchTerm?: string,
   filterConditions?: string[],
 ): Promise<EcrDisplay[]> {
-  const pool = await get_pool();
-
   try {
     const conditionsSubQuery =
       "SELECT STRING_AGG([condition], ',') FROM (SELECT DISTINCT erc.[condition] FROM ecr_viewer.ecr_rr_conditions AS erc WHERE erc.eICR_ID = ed.eICR_ID) AS distinct_conditions";
@@ -143,12 +138,12 @@ async function listEcrDataSqlserver(
       searchTerm,
       filterConditions,
     );
-    const query = `SELECT ed.eICR_ID, ed.first_name, ed.last_name, ed.birth_date, ed.encounter_start_date, ed.date_created, ed.set_id, ed.eicr_version_number, (${conditionsSubQuery}) AS conditions, (${ruleSummariesSubQuery}) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE ${whereStatement} GROUP BY ed.eICR_ID, ed.first_name, ed.last_name, ed.birth_date, ed.encounter_start_date, ed.date_created, ed.set_id, ed.eicr_version_number ${sortStatement} OFFSET ${startIndex} ROWS FETCH NEXT ${itemsPerPage} ROWS ONLY`;
-    const list = await pool.request().query<ExtendedMetadataModel[]>(query);
-
-    return processExtendedMetadata(list.recordset);
+    
+    const queryString = `SELECT ed.eICR_ID, ed.first_name, ed.last_name, ed.birth_date, ed.encounter_start_date, ed.date_created, ed.set_id, ed.eicr_version_number, (${conditionsSubQuery}) AS conditions, (${ruleSummariesSubQuery}) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE ${whereStatement} GROUP BY ed.eICR_ID, ed.first_name, ed.last_name, ed.birth_date, ed.encounter_start_date, ed.date_created, ed.set_id, ed.eicr_version_number ${sortStatement} OFFSET ${startIndex.toString()} ROWS FETCH NEXT ${itemsPerPage.toString()} ROWS ONLY`;
+    const result = await sql.raw<ExtendedMetadataModel>(queryString).execute(db)
+    const list = result.rows;
+    return processExtendedMetadata(list);
   } catch (error: unknown) {
-    console.error(error);
     return Promise.reject(error);
   }
 }
@@ -227,17 +222,17 @@ export const getTotalEcrCount = async (
   searchTerm?: string,
   filterConditions?: string[],
 ): Promise<number> => {
-  const DATABASE_TYPE = process.env.METADATA_DATABASE_TYPE;
+  const SCHEMA_TYPE = process.env.METADATA_DATABASE_SCHEMA;
 
-  switch (DATABASE_TYPE) {
-    case "postgres":
-      return getTotalEcrCountPostgres(
+  switch (SCHEMA_TYPE) {
+    case "core":
+      return getTotalCoreEcrCount(
         filterDates,
         searchTerm,
         filterConditions,
       );
-    case "sqlserver":
-      return getTotalEcrCountSqlServer(
+    case "extended":
+      return getTotalExtendedEcrCount(
         filterDates,
         searchTerm,
         filterConditions,
@@ -247,32 +242,28 @@ export const getTotalEcrCount = async (
   }
 };
 
-const getTotalEcrCountPostgres = async (
+const getTotalCoreEcrCount = async (
   filterDates: DateRangePeriod,
   searchTerm?: string,
   filterConditions?: string[],
 ): Promise<number> => {
-  var whereClause = generateWhereStatementPostgres(
+  var whereClause = generateCoreWhereStatement(
     filterDates,
     searchTerm,
     filterConditions,
   );
   const result = await sql<{ count: number }>`
-  SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${sql.raw(
-    whereClause,
-  )}
+  SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${sql.raw(whereClause)}
   `.execute(db);
 
   return result.rows[0].count;
 };
 
-const getTotalEcrCountSqlServer = async (
+const getTotalExtendedEcrCount = async (
   filterDates: DateRangePeriod,
   searchTerm?: string,
   filterConditions?: string[],
 ): Promise<number> => {
-  const pool = await get_pool();
-
   try {
     const whereStatement = generateWhereStatementSqlServer(
       filterDates,
@@ -281,10 +272,8 @@ const getTotalEcrCountSqlServer = async (
     );
 
     const query = `SELECT COUNT(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID WHERE ${whereStatement}`;
-
-    const count = await pool.request().query<{ count: number }>(query);
-
-    return count.recordset[0].count;
+    const result = await sql<{ count: number }>`${query}`.execute(db);
+    return result.rows[0].count;
   } catch (error: unknown) {
     console.error(error);
     return Promise.reject(error);
@@ -298,7 +287,7 @@ const getTotalEcrCountSqlServer = async (
  * @param filterConditions - Optional array of reportable conditions used to filter
  * @returns custom type format object for use by pg-promise
  */
-export const generateWhereStatementPostgres = (
+export const generateCoreWhereStatement = (
   filterDates: DateRangePeriod,
   searchTerm?: string,
   filterConditions?: string[],
