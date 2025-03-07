@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-import * as database_repo from "@/app/api/services/database_repo";
+import * as database_repo from "@/app/api/services/core_database_repo";
 import { buildCore, dropCore } from "@/app/api/services/db_schema";
 
 const expected = [{

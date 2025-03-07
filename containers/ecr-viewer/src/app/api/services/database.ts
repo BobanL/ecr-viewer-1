@@ -5,8 +5,8 @@ import { Pool } from "pg";
 import * as tarn from "tarn";
 import * as tedious from "tedious";
 
-import { Extended } from "./extended_types";
 import { Core } from "./core_types";
+import { Extended } from "./extended_types";
 
 // Dialect to communicate with the database, interface to define its structure.
 

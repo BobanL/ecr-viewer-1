@@ -1,6 +1,7 @@
 import { Kysely, sql } from "kysely";
-import { db } from "./database";
+
 import { Core } from "./core_types";
+import { db } from "./database";
 import { Extended } from "./extended_types";
 
 /**
@@ -240,7 +241,10 @@ export const dropCoreAlias = async () => {
  * @function clearCoreAlias
  */
 export const clearCoreAlias = async () => {
-    await (db as any).deleteFrom("ecr_viewer.ecr_data").execute();
-    await (db as any).deleteFrom("ecr_viewer.ecr_rr_conditions").execute();
-    await (db as any).deleteFrom("ecr_viewer.ecr_rr_rule_summaries").execute();
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (db as Kysely<any>).deleteFrom("ecr_viewer.ecr_data").execute();
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (db as Kysely<any>).deleteFrom("ecr_viewer.ecr_rr_conditions").execute();
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (db as Kysely<any>).deleteFrom("ecr_viewer.ecr_rr_rule_summaries").execute();
 }

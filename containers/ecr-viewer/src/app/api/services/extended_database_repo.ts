@@ -1,4 +1,5 @@
 import { Kysely } from "kysely";
+
 import { db } from "./database";
 import {
   Extended,
@@ -56,8 +57,8 @@ export async function findExtendedEcr(criteria: Partial<ExtendedECR> | null): Pr
   }
 
   for (const criterium of Object.keys(criteria) as (keyof ExtendedECR)[]) {
-    if (criteria[criterium] !== undefined || criteria[criterium] !== null) {
-      query = query.where(criterium, "=", criteria[criterium] as any);
+    if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
+      query = query.where(criterium, "=", criteria[criterium]);
     }
   }
 
@@ -155,8 +156,8 @@ export async function findAddress(criteria: Partial<PatientAddress>): Promise<Pa
   let query = (db as Kysely<Extended>).selectFrom("patient_address");
 
   for (const criterium of Object.keys(criteria) as (keyof PatientAddress)[]) {
-    if (criteria[criterium] !== undefined || criteria[criterium] !== null) {
-      query = query.where(criterium, "=", criteria[criterium] as any);
+    if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
+      query = query.where(criterium, "=", criteria[criterium]);
     }
   }
 
@@ -252,8 +253,8 @@ export async function findLab(criteria: Partial<ECRLabs>): Promise<ECRLabs[]> {
   let query = (db as Kysely<Extended>).selectFrom("ecr_labs");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRLabs)[]) {
-    if (criteria[criterium] !== undefined || criteria[criterium] !== null) {
-      query = query.where(criterium, "=", criteria[criterium] as any);
+    if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
+      query = query.where(criterium, "=", criteria[criterium]);
     }
   }
 
@@ -346,8 +347,8 @@ export async function findEcrCondition(criteria: Partial<ECRConditions>): Promis
   let query = (db as Kysely<Extended>).selectFrom("ecr_rr_conditions");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRConditions)[]) {
-    if (criteria[criterium] !== undefined || criteria[criterium] !== null) {
-      query = query.where(criterium, "=", criteria[criterium] as any);
+    if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
+      query = query.where(criterium, "=", criteria[criterium]);
     }
   }
 
@@ -443,8 +444,8 @@ export async function findEcrRule(criteria: Partial<ECRRuleSummaries>): Promise<
   let query = (db as Kysely<Extended>).selectFrom("ecr_rr_rule_summaries");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRRuleSummaries)[]) {
-    if (criteria[criterium] !== undefined || criteria[criterium] !== null) {
-      query = query.where(criterium, "=", criteria[criterium] as any);
+    if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
+      query = query.where(criterium, "=", criteria[criterium]);
     }
   }
 

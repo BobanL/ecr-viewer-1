@@ -1,7 +1,8 @@
-import { DateRangePeriod } from "@/app/utils/date-utils";
-import { Kysely, sql } from "kysely";
+import { sql } from "kysely";
+
 import { db } from "@/app/api/services/database";
-import { Core } from "@/app/api/services/core_types";
+import { DateRangePeriod } from "@/app/utils/date-utils";
+
 import { formatDate, formatDateTime } from "./formatDateService";
 
 export interface CoreMetadataModel {

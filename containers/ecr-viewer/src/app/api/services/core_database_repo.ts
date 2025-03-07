@@ -1,6 +1,5 @@
 import { Kysely } from "kysely";
 
-import { db } from "./database";
 import {
   ECRConditions,
   NewECRConditions,
@@ -13,6 +12,7 @@ import {
   ECRUpdate,
 } from "./core_types";
 import { Core } from "./core_types";
+import { db } from "./database";
 
 // ECR_DATA
 
@@ -53,8 +53,8 @@ export async function findEcr(criteria: Partial<ECR> | null): Promise<ECR[]> {
   }
 
   for (const criterium of Object.keys(criteria) as (keyof ECR)[]) {
-    if (criteria[criterium] !== undefined || criteria[criterium] !== null) {
-      query = query.where(criterium, "=", criteria[criterium] as any);
+    if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
+      query = query.where(criterium, "=", criteria[criterium]);
     }
   }
 
@@ -149,8 +149,8 @@ export async function findEcrCondition(criteria: Partial<ECRConditions>): Promis
   let query = (db as Kysely<Core>).selectFrom("ecr_rr_conditions");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRConditions)[]) {
-    if (criteria[criterium] !== undefined || criteria[criterium] !== null) {
-      query = query.where(criterium, "=", criteria[criterium] as any);
+    if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
+      query = query.where(criterium, "=", criteria[criterium]);
     }
   }
 
@@ -246,8 +246,8 @@ export async function findEcrRule(criteria: Partial<ECRRuleSummaries>): Promise<
   let query = (db as Kysely<Core>).selectFrom("ecr_rr_rule_summaries");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRRuleSummaries)[]) {
-    if (criteria[criterium] !== undefined || criteria[criterium] !== null) {
-      query = query.where(criterium, "=", criteria[criterium] as any);
+    if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
+      query = query.where(criterium, "=", criteria[criterium]);
     }
   }
 
