@@ -5,18 +5,20 @@
 import * as database_repo from "@/app/api/services/core_database_repo";
 import { buildCore, dropCore } from "@/app/api/services/db_schema";
 
-const expected = [{
-  eICR_ID: "12345",
-  set_id: "setid",
-  data_source: "DB",
-  fhir_reference_link: "link",
-  eicr_version_number: "50000",
-  patient_name_first: "Boba",
-  patient_name_last: "Fett",
-  patient_birth_date: new Date("1969-02-10T05:00:00.000Z"),
-  date_created: new Date("2025-01-01"),
-  report_date: new Date("2025-02-06T05:00:00.000Z"),
-}]
+const expected = [
+  {
+    eICR_ID: "12345",
+    set_id: "setid",
+    data_source: "DB",
+    fhir_reference_link: "link",
+    eicr_version_number: "50000",
+    patient_name_first: "Boba",
+    patient_name_last: "Fett",
+    patient_birth_date: new Date("1969-02-10T05:00:00.000Z"),
+    date_created: new Date("2025-01-01"),
+    report_date: new Date("2025-02-06T05:00:00.000Z"),
+  },
+];
 
 describe("database_repo", () => {
   beforeAll(async () => {
@@ -40,13 +42,14 @@ describe("database_repo", () => {
   });
 
   describe("ecr_data", () => {
-
     it("should find an ECR with a given eICR_ID", async () => {
       await database_repo.findEcrById("12345");
     });
 
     it("should find all people named Boba", async () => {
-      const actual = await database_repo.findEcr({ patient_name_first: "Boba" });
+      const actual = await database_repo.findEcr({
+        patient_name_first: "Boba",
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -76,7 +79,6 @@ describe("database_repo", () => {
 
   // ecr_rr_conditions
   describe("ecr_rr_conditions", () => {
-
     it("should find a conditions with a given uuid", async () => {
       await database_repo.findEcrConditionById("12345");
     });
@@ -106,7 +108,6 @@ describe("database_repo", () => {
 
   // ecr_rr_rule_summaries
   describe("ecr_rr_rule_summaries", () => {
-
     it("should find a rule summary with a given uuid", async () => {
       await database_repo.findEcrRuleById("12345");
     });
@@ -132,5 +133,5 @@ describe("database_repo", () => {
     it("should delete a rule summary with a given id", async () => {
       await database_repo.deleteEcrRule("12345");
     });
-  })
+  });
 });

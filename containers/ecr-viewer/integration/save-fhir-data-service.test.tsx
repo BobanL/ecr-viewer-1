@@ -10,7 +10,14 @@ import {
   BundleMetadata,
   BundleExtendedMetadata,
 } from "@/app/api/save-fhir-data/types";
-import { buildCore, buildExtended, clearCore, clearExtended, dropCore, dropExtended } from "@/app/api/services/db_schema";
+import {
+  buildCore,
+  buildExtended,
+  clearCore,
+  clearExtended,
+  dropCore,
+  dropExtended,
+} from "@/app/api/services/db_schema";
 
 const baseExtendedMetadata: BundleExtendedMetadata = {
   patient_id: "12345",

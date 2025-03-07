@@ -217,11 +217,11 @@ describe("listEcrDataService", () => {
   describe("listEcrDataService with SQL Server", () => {
     beforeAll(async () => {
       process.env.METADATA_DATABASE_TYPE = "postgres";
-      process.env.METADATA_DATABASE_SCHEMA = "core"
+      process.env.METADATA_DATABASE_SCHEMA = "core";
       await buildCoreAlias();
     });
 
-    afterAll( async () => {
+    afterAll(async () => {
       delete process.env.METADATA_DATABASE_TYPE;
       await dropCoreAlias();
     });
@@ -298,7 +298,7 @@ describe("listEcrDataService", () => {
             patient_report_date: "12/01/2024 12:00\u00A0AM\u00A0EST",
             eicr_set_id: "123",
             eicr_version_number: "1",
-          }
+          },
         ]);
       });
     });
@@ -386,13 +386,7 @@ describe("listEcrDataService", () => {
       );
     });
     it("should display all conditions in date range by default if no filter has been added", () => {
-      expect(
-        generateCoreWhereStatement(
-          testDateRange,
-          "", 
-          undefined,
-        )
-      ).toEqual(
+      expect(generateCoreWhereStatement(testDateRange, "", undefined)).toEqual(
         "(NULL IS NULL OR NULL IS NULL) AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (NULL IS NULL)",
       );
     });
@@ -410,20 +404,14 @@ describe("listEcrDataService", () => {
     });
     it("should generate where statement using search statement (no conditions filter provided)", () => {
       expect(
-        generateCoreWhereStatement(
-          testDateRange,
-          "blah",
-          undefined,
-        ),
+        generateCoreWhereStatement(testDateRange, "blah", undefined),
       ).toEqual(
         "(ed.patient_name_first ILIKE '%blah%' OR ed.patient_name_last ILIKE '%blah%') AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (NULL IS NULL)",
       );
     });
     it("should generate where statement using filter conditions statement (no search provided)", () => {
       expect(
-        generateCoreWhereStatement(testDateRange, "", [
-          "Anthrax (disorder)",
-        ]),
+        generateCoreWhereStatement(testDateRange, "", ["Anthrax (disorder)"]),
       ).toEqual(
         "(NULL IS NULL OR NULL IS NULL) AND (ed.date_created >= '2024-12-01T00:00:00.000-05:00' AND ed.date_created <= '2024-12-02T00:00:00.000-05:00') AND (ed.eICR_ID IN (SELECT DISTINCT ed_sub.eICR_ID FROM ecr_viewer.ecr_data ed_sub LEFT JOIN ecr_viewer.ecr_rr_conditions erc_sub ON ed_sub.eICR_ID = erc_sub.eICR_ID WHERE erc_sub.condition IS NOT NULL AND (erc_sub.condition ILIKE '%Anthrax (disorder)%')))",
       );

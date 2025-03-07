@@ -8,7 +8,6 @@ import { EcrDisplay, listEcrData } from "@/app/services/listEcrDataService";
 jest.mock("../../services/listEcrDataService");
 jest.mock("../../../app/api/services/database");
 
-
 jest.mock("next/navigation", () => ({
   useRouter: () => router,
   usePathname: () => router.pathname,

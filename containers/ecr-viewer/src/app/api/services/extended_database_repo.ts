@@ -49,7 +49,9 @@ export async function findExtendedEcrById(id: string | null) {
  * @param criteria - the Partial<ExtendedECR> filtering criteria
  * @returns an eICR object
  */
-export async function findExtendedEcr(criteria: Partial<ExtendedECR> | null): Promise<ExtendedECR[]> {
+export async function findExtendedEcr(
+  criteria: Partial<ExtendedECR> | null,
+): Promise<ExtendedECR[]> {
   let query = (db as Kysely<Extended>).selectFrom("ecr_data");
 
   if (!criteria || criteria === null) {
@@ -72,7 +74,9 @@ export async function findExtendedEcr(criteria: Partial<ExtendedECR> | null): Pr
  * @param ecr - the NewExtendedECR to be persisted
  * @returns the created eICR object
  */
-export async function createExtendedEcr(ecr: NewExtendedECR | null): Promise<ExtendedECR | undefined> {
+export async function createExtendedEcr(
+  ecr: NewExtendedECR | null,
+): Promise<ExtendedECR | undefined> {
   if (!ecr || ecr === null) {
     throw new Error("eICR Data is required.");
   }
@@ -113,7 +117,9 @@ export async function updateExtendedEcr(
  * @param eICR_ID - the ID of the eICR to be deleted
  * @returns the deleted eICR object
  */
-export async function deleteExtendedEcr(eICR_ID: string): Promise<ExtendedECR | undefined> {
+export async function deleteExtendedEcr(
+  eICR_ID: string,
+): Promise<ExtendedECR | undefined> {
   const ecr = await findExtendedEcrById(eICR_ID);
   if (!ecr) {
     throw new Error("Cannot find ECR with given ID.");
@@ -137,7 +143,9 @@ export async function deleteExtendedEcr(eICR_ID: string): Promise<ExtendedECR | 
  * @param id - the ID of the address record
  * @returns a patient_address object
  */
-export async function findAddressById(id: string): Promise<PatientAddress | undefined> {
+export async function findAddressById(
+  id: string,
+): Promise<PatientAddress | undefined> {
   return await (db as Kysely<Extended>)
     .selectFrom("patient_address")
     .where("uuid", "=", id)
@@ -152,7 +160,9 @@ export async function findAddressById(id: string): Promise<PatientAddress | unde
  * @param criteria - the Partial<PatientAddress> filtering criteria to be looked up
  * @returns a patient_address object
  */
-export async function findAddress(criteria: Partial<PatientAddress>): Promise<PatientAddress[]> {
+export async function findAddress(
+  criteria: Partial<PatientAddress>,
+): Promise<PatientAddress[]> {
   let query = (db as Kysely<Extended>).selectFrom("patient_address");
 
   for (const criterium of Object.keys(criteria) as (keyof PatientAddress)[]) {
@@ -171,7 +181,9 @@ export async function findAddress(criteria: Partial<PatientAddress>): Promise<Pa
  * @param patient_address - the NewPatientAddress to be persisted
  * @returns the created patient_address object
  */
-export async function createAddress(patient_address: NewPatientAddress): Promise<PatientAddress | undefined> {
+export async function createAddress(
+  patient_address: NewPatientAddress,
+): Promise<PatientAddress | undefined> {
   if (!patient_address || patient_address === null) {
     throw new Error("eICR Data is required.");
   }
@@ -212,7 +224,9 @@ export async function updateAddress(
  * @param uuid - the UUID of the record to be deleted
  * @returns the deleted patient_address object
  */
-export async function deleteAddress(uuid: string): Promise<PatientAddress | undefined> {
+export async function deleteAddress(
+  uuid: string,
+): Promise<PatientAddress | undefined> {
   const address = await findAddressById(uuid);
 
   if (address) {
@@ -268,7 +282,9 @@ export async function findLab(criteria: Partial<ECRLabs>): Promise<ECRLabs[]> {
  * @function createLab
  * @returns the created eCR Lab object
  */
-export async function createLab(lab: NewECRLabs | null): Promise<ECRLabs | undefined> {
+export async function createLab(
+  lab: NewECRLabs | null,
+): Promise<ECRLabs | undefined> {
   if (!lab || lab === null) {
     throw new Error("eICR Lab Data is required.");
   }
@@ -291,7 +307,10 @@ export async function createLab(lab: NewECRLabs | null): Promise<ECRLabs | undef
  * @param updateWith - the ECRLapsUpdate to be applied to the existing record
  * @returns the updated eCR Lab object
  */
-export async function updateLab(uuid: string, updateWith: ECRLabsUpdate): Promise<void> {
+export async function updateLab(
+  uuid: string,
+  updateWith: ECRLabsUpdate,
+): Promise<void> {
   await (db as Kysely<Extended>)
     .updateTable("ecr_labs")
     .set(updateWith)
@@ -328,7 +347,9 @@ export async function deleteLab(uuid: string): Promise<ECRLabs | undefined> {
  * @param id - the ID of the record being looked up
  * @returns an eCR condition object
  */
-export async function findEcrConditionById(id: string): Promise<ECRConditions | undefined> {
+export async function findEcrConditionById(
+  id: string,
+): Promise<ECRConditions | undefined> {
   return await (db as Kysely<Extended>)
     .selectFrom("ecr_rr_conditions")
     .where("uuid", "=", id)
@@ -343,7 +364,9 @@ export async function findEcrConditionById(id: string): Promise<ECRConditions | 
  * @param criteria - the Partial<ECRConditions> filter to be looked up
  * @returns an eCR condition object
  */
-export async function findEcrCondition(criteria: Partial<ECRConditions>): Promise<ECRConditions[]> {
+export async function findEcrCondition(
+  criteria: Partial<ECRConditions>,
+): Promise<ECRConditions[]> {
   let query = (db as Kysely<Extended>).selectFrom("ecr_rr_conditions");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRConditions)[]) {
@@ -362,7 +385,9 @@ export async function findEcrCondition(criteria: Partial<ECRConditions>): Promis
  * @param condition - the NewECRConditions to be persisted
  * @returns the created eCR condition object
  */
-export async function createEcrCondition(condition: NewECRConditions | null): Promise<ECRConditions | undefined> {
+export async function createEcrCondition(
+  condition: NewECRConditions | null,
+): Promise<ECRConditions | undefined> {
   if (!condition || condition === null) {
     throw new Error("eICR Data is required.");
   }
@@ -403,7 +428,9 @@ export async function updateEcrCondition(
  * @param uuid - the UUID of the record to be deleted
  * @returns the deleted eCR condition object
  */
-export async function deleteEcrCondition(uuid: string): Promise<ECRConditions | undefined> {
+export async function deleteEcrCondition(
+  uuid: string,
+): Promise<ECRConditions | undefined> {
   const ecr = await findEcrConditionById(uuid);
 
   if (ecr) {
@@ -425,7 +452,9 @@ export async function deleteEcrCondition(uuid: string): Promise<ECRConditions | 
  * @param id - the ID of the record being looked up
  * @returns an eCR rule object
  */
-export async function findEcrRuleById(id: string): Promise<ECRRuleSummaries | undefined> {
+export async function findEcrRuleById(
+  id: string,
+): Promise<ECRRuleSummaries | undefined> {
   return await (db as Kysely<Extended>)
     .selectFrom("ecr_rr_rule_summaries")
     .where("uuid", "=", id)
@@ -440,7 +469,9 @@ export async function findEcrRuleById(id: string): Promise<ECRRuleSummaries | un
  * @param criteria - the Parcial<ECRRuleSummaries> to filter the record being looked up
  * @returns an eCR rule object
  */
-export async function findEcrRule(criteria: Partial<ECRRuleSummaries>): Promise<ECRRuleSummaries[]> {
+export async function findEcrRule(
+  criteria: Partial<ECRRuleSummaries>,
+): Promise<ECRRuleSummaries[]> {
   let query = (db as Kysely<Extended>).selectFrom("ecr_rr_rule_summaries");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRRuleSummaries)[]) {
@@ -459,7 +490,9 @@ export async function findEcrRule(criteria: Partial<ECRRuleSummaries>): Promise<
  * @param rule_summary - the NewECRRuleSummaries to be persisted
  * @returns the created eCR rule object
  */
-export async function createEcrRule(rule_summary: NewECRRuleSummaries): Promise<ECRRuleSummaries | undefined> {
+export async function createEcrRule(
+  rule_summary: NewECRRuleSummaries,
+): Promise<ECRRuleSummaries | undefined> {
   if (!rule_summary || rule_summary === null) {
     throw new Error("eICR Data is required.");
   }
@@ -500,7 +533,9 @@ export async function updateEcrRule(
  * @param uuid - the UUID of the record to be deleted
  * @returns the deleted eCR rule object
  */
-export async function deleteEcrRule(uuid: string): Promise<ECRRuleSummaries | undefined> {
+export async function deleteEcrRule(
+  uuid: string,
+): Promise<ECRRuleSummaries | undefined> {
   const rule_summary = await findEcrRuleById(uuid);
 
   if (rule_summary) {

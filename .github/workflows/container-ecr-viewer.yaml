@@ -219,7 +219,7 @@ jobs:
           name: logs
           path: ./containers/${{env.CONTAINER}}/e2e/e2e-run.log
           retention-days: 5
-  
+
   db-integration-pg-core:
     runs-on: ubuntu-latest
     timeout-minutes: 20

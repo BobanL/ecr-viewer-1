@@ -139,9 +139,11 @@ async function listExtendedEcrData(
       searchTerm,
       filterConditions,
     );
-    
+
     const queryString = `SELECT ed.eICR_ID, ed.first_name, ed.last_name, ed.birth_date, ed.encounter_start_date, ed.date_created, ed.set_id, ed.eicr_version_number, (${conditionsSubQuery}) AS conditions, (${ruleSummariesSubQuery}) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE ${whereStatement} GROUP BY ed.eICR_ID, ed.first_name, ed.last_name, ed.birth_date, ed.encounter_start_date, ed.date_created, ed.set_id, ed.eicr_version_number ${sortStatement} OFFSET ${startIndex.toString()} ROWS FETCH NEXT ${itemsPerPage.toString()} ROWS ONLY`;
-    const result = await sql.raw<ExtendedMetadataModel>(queryString).execute(db)
+    const result = await sql
+      .raw<ExtendedMetadataModel>(queryString)
+      .execute(db);
     const list = result.rows;
     return processExtendedMetadata(list);
   } catch (error: unknown) {
@@ -227,11 +229,7 @@ export const getTotalEcrCount = async (
 
   switch (SCHEMA_TYPE) {
     case "core":
-      return getTotalCoreEcrCount(
-        filterDates,
-        searchTerm,
-        filterConditions,
-      );
+      return getTotalCoreEcrCount(filterDates, searchTerm, filterConditions);
     case "extended":
       return getTotalExtendedEcrCount(
         filterDates,
@@ -254,7 +252,9 @@ const getTotalCoreEcrCount = async (
     filterConditions,
   );
   const result = await sql<{ count: number }>`
-  SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${sql.raw(whereClause)}
+  SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${sql.raw(
+    whereClause,
+  )}
   `.execute(db);
 
   return result.rows[0].count;

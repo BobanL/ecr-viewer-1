@@ -91,7 +91,10 @@ export async function createEcr(ecr: NewECR | null): Promise<ECR | undefined> {
  * @param updateWith - the ECRUpdate to be applied to the existing record
  * @returns the updated eICR object
  */
-export async function updateEcr(eICR_ID: string | null, updateWith: ECRUpdate): Promise<void> {
+export async function updateEcr(
+  eICR_ID: string | null,
+  updateWith: ECRUpdate,
+): Promise<void> {
   await (db as Kysely<Core>)
     .updateTable("ecr_data")
     .set(updateWith)
@@ -106,7 +109,9 @@ export async function updateEcr(eICR_ID: string | null, updateWith: ECRUpdate): 
  * @param eICR_ID - the eICR_ID of the record to be deleted
  * @returns the deleted eICR object
  */
-export async function deleteEcr(eICR_ID: string | null): Promise<ECR | undefined> {
+export async function deleteEcr(
+  eICR_ID: string | null,
+): Promise<ECR | undefined> {
   const ecr = await findEcrById(eICR_ID);
 
   if (!ecr) {
@@ -130,7 +135,9 @@ export async function deleteEcr(eICR_ID: string | null): Promise<ECR | undefined
  * @param id - the UUID of the eCR condition being looked up
  * @returns an eCR condition object
  */
-export async function findEcrConditionById(id: string): Promise<ECRConditions | undefined> {
+export async function findEcrConditionById(
+  id: string,
+): Promise<ECRConditions | undefined> {
   return await (db as Kysely<Core>)
     .selectFrom("ecr_rr_conditions")
     .where("uuid", "=", id)
@@ -145,7 +152,9 @@ export async function findEcrConditionById(id: string): Promise<ECRConditions | 
  * @param criteria - the Partial<ECRConditions> filtering criteria to be applied
  * @returns an eCR condition object
  */
-export async function findEcrCondition(criteria: Partial<ECRConditions>): Promise<ECRConditions[]> {
+export async function findEcrCondition(
+  criteria: Partial<ECRConditions>,
+): Promise<ECRConditions[]> {
   let query = (db as Kysely<Core>).selectFrom("ecr_rr_conditions");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRConditions)[]) {
@@ -164,7 +173,9 @@ export async function findEcrCondition(criteria: Partial<ECRConditions>): Promis
  * @param condition - the NewECRConditions to be created
  * @returns the created eCR condition object
  */
-export async function createEcrCondition(condition: NewECRConditions | null): Promise<ECRConditions | undefined> {
+export async function createEcrCondition(
+  condition: NewECRConditions | null,
+): Promise<ECRConditions | undefined> {
   if (!condition || condition === null) {
     throw new Error("eICR Data is required.");
   }
@@ -205,7 +216,9 @@ export async function updateEcrCondition(
  * @param uuid - thge UUID of the record to be deleted
  * @returns the deleted eCR condition object
  */
-export async function deleteEcrCondition(uuid: string): Promise<ECRConditions | undefined> {
+export async function deleteEcrCondition(
+  uuid: string,
+): Promise<ECRConditions | undefined> {
   const ecr = await findEcrConditionById(uuid);
 
   if (ecr) {
@@ -227,7 +240,9 @@ export async function deleteEcrCondition(uuid: string): Promise<ECRConditions | 
  * @param id - the ID of the eCR being looked up
  * @returns an eCR rule object
  */
-export async function findEcrRuleById(id: string): Promise<ECRRuleSummaries | undefined> {
+export async function findEcrRuleById(
+  id: string,
+): Promise<ECRRuleSummaries | undefined> {
   return await (db as Kysely<Core>)
     .selectFrom("ecr_rr_rule_summaries")
     .where("uuid", "=", id)
@@ -242,7 +257,9 @@ export async function findEcrRuleById(id: string): Promise<ECRRuleSummaries | un
  * @param criteria - the Partial<ECRRuleSummaries> filtering criteria
  * @returns an eCR rule object
  */
-export async function findEcrRule(criteria: Partial<ECRRuleSummaries>): Promise<ECRRuleSummaries[]> {
+export async function findEcrRule(
+  criteria: Partial<ECRRuleSummaries>,
+): Promise<ECRRuleSummaries[]> {
   let query = (db as Kysely<Core>).selectFrom("ecr_rr_rule_summaries");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRRuleSummaries)[]) {
@@ -261,7 +278,9 @@ export async function findEcrRule(criteria: Partial<ECRRuleSummaries>): Promise<
  * @function createEcrRule
  * @returns the created eCR rule object
  */
-export async function createEcrRule(rule_summary: NewECRRuleSummaries): Promise<ECRRuleSummaries | undefined> {
+export async function createEcrRule(
+  rule_summary: NewECRRuleSummaries,
+): Promise<ECRRuleSummaries | undefined> {
   if (!rule_summary || rule_summary === null) {
     throw new Error("eICR Data is required.");
   }
@@ -302,7 +321,9 @@ export async function updateEcrRule(
  * @param uuid - the UUID of the eCR rule to be deleted
  * @returns the deleted eCR rule object
  */
-export async function deleteEcrRule(uuid: string): Promise<ECRRuleSummaries | undefined> {
+export async function deleteEcrRule(
+  uuid: string,
+): Promise<ECRRuleSummaries | undefined> {
   const rule_summary = await findEcrRuleById(uuid);
 
   if (rule_summary) {

@@ -6,7 +6,11 @@ import { sql } from "kysely";
 
 import { db } from "@/app/api/services/database";
 import * as extended_database_repo from "@/app/api/services/extended_database_repo";
-import { buildExtended, clearExtended, dropExtended } from "@/app/api/services/db_schema";
+import {
+  buildExtended,
+  clearExtended,
+  dropExtended,
+} from "@/app/api/services/db_schema";
 
 const template = {
   eICR_ID: "12345",
@@ -50,7 +54,7 @@ const template = {
 
 describe("extended_database_repo", () => {
   beforeAll(async () => {
-    await buildExtended()
+    await buildExtended();
   });
 
   afterAll(async () => {
@@ -88,7 +92,6 @@ describe("extended_database_repo", () => {
 
   // patient_address
   describe("patient_address", () => {
-
     it("should find an address with a given uuid", async () => {
       await extended_database_repo.findAddressById("12345");
     });
@@ -126,7 +129,6 @@ describe("extended_database_repo", () => {
 
   // ecr_labs
   describe("ecr_labs", () => {
-
     it("should find a lab with a given uuid", async () => {
       await extended_database_repo.findLabById("12345");
     });
@@ -174,13 +176,14 @@ describe("extended_database_repo", () => {
 
   // ecr_rr_conditions
   describe("ecr_rr_conditions", () => {
-
     it("should find a conditions with a given uuid", async () => {
       await extended_database_repo.findEcrConditionById("12345");
     });
 
     it("should find all conditions named Dark Magic", async () => {
-      await extended_database_repo.findEcrCondition({ condition: "Dark Magic" });
+      await extended_database_repo.findEcrCondition({
+        condition: "Dark Magic",
+      });
     });
 
     it("should update the condition with a given id", async () => {
