@@ -11,7 +11,7 @@ import {
 
 describe("extended_database_repo", () => {
   beforeAll(async () => {
-    await buildExtended()
+    await buildExtended();
   });
 
   afterAll(async () => {
@@ -64,16 +64,18 @@ describe("extended_database_repo", () => {
 
     afterEach(async () => {
       await clearExtended();
-    })
+    });
 
     it("should find an ECR with a given eICR_ID", async () => {
       const actual = await extended_database_repo.findExtendedEcrById("12345");
-      expect(actual).toEqual({...template, active_problems: "{\"Dead\"}"}); // Needs fix to switch to array from string. Coming soon!
+      expect(actual).toEqual({ ...template, active_problems: '{"Dead"}' }); // Needs fix to switch to array from string. Coming soon!
     });
 
     it("should find all people named General", async () => {
-      const actual = await extended_database_repo.findExtendedEcr({ first_name: "Obi-Wan" });
-      expect(actual[0]).toEqual({...template, active_problems: "{\"Dead\"}"});
+      const actual = await extended_database_repo.findExtendedEcr({
+        first_name: "Obi-Wan",
+      });
+      expect(actual[0]).toEqual({ ...template, active_problems: '{"Dead"}' });
     });
 
     it("should update patient_name_last of a person with a given id", async () => {
@@ -85,9 +87,16 @@ describe("extended_database_repo", () => {
     });
 
     it("should create an ECR", async () => {
-      await extended_database_repo.createExtendedEcr({...template, eICR_ID: "54321"});
+      await extended_database_repo.createExtendedEcr({
+        ...template,
+        eICR_ID: "54321",
+      });
       const actual = await extended_database_repo.findExtendedEcrById("54321");
-      expect(actual).toEqual({...template, eICR_ID: "54321", active_problems: "{\"Dead\"}"});
+      expect(actual).toEqual({
+        ...template,
+        eICR_ID: "54321",
+        active_problems: '{"Dead"}',
+      });
     });
 
     it("should delete an ECR with a given id", async () => {
@@ -120,16 +129,18 @@ describe("extended_database_repo", () => {
 
     afterEach(async () => {
       await clearExtended();
-    })
+    });
 
     it("should find an address with a given uuid", async () => {
       const actual = await extended_database_repo.findAddressById("12345");
-      expect(actual).toEqual({...template, line: "{\"Apt 2\"}"}); // Same fix coming soon here
+      expect(actual).toEqual({ ...template, line: '{"Apt 2"}' }); // Same fix coming soon here
     });
 
     it("should find all registered addresses within a given city", async () => {
-      const actual = await extended_database_repo.findAddress({ city: "Coruscant" });
-      expect(actual[0]).toEqual({...template, line: "{\"Apt 2\"}"});
+      const actual = await extended_database_repo.findAddress({
+        city: "Coruscant",
+      });
+      expect(actual[0]).toEqual({ ...template, line: '{"Apt 2"}' });
     });
 
     it("should update the address with a given id", async () => {
@@ -139,9 +150,12 @@ describe("extended_database_repo", () => {
     });
 
     it("should create an address", async () => {
-      await extended_database_repo.createAddress({...template, uuid: "54321"});
+      await extended_database_repo.createAddress({
+        ...template,
+        uuid: "54321",
+      });
       const actual = await extended_database_repo.findAddressById("54321");
-      expect(actual).toEqual({...template, uuid: "54321", line: "{\"Apt 2\"}"});
+      expect(actual).toEqual({ ...template, uuid: "54321", line: '{"Apt 2"}' });
     });
 
     it("should delete an address with a given id", async () => {
@@ -182,14 +196,16 @@ describe("extended_database_repo", () => {
 
     afterEach(async () => {
       await clearExtended();
-    })
+    });
     it("should find a lab with a given uuid", async () => {
       const actual = await extended_database_repo.findLabById("12345");
       expect(actual).toEqual(template);
     });
 
     it("should find all labs with test_type Dark Magic", async () => {
-      const actual = await extended_database_repo.findLab({ test_type: "Dark Magic" });
+      const actual = await extended_database_repo.findLab({
+        test_type: "Dark Magic",
+      });
       expect(actual[0]).toEqual(template);
     });
 
@@ -202,11 +218,10 @@ describe("extended_database_repo", () => {
     });
 
     it("should create a lab", async () => {
-      await extended_database_repo.createLab({...template, uuid: "54321"});
+      await extended_database_repo.createLab({ ...template, uuid: "54321" });
       const actual = await extended_database_repo.findLabById("54321");
-      expect(actual).toEqual({...template, uuid: "54321"});
+      expect(actual).toEqual({ ...template, uuid: "54321" });
     });
-
 
     it("should delete a lab with a given id", async () => {
       await extended_database_repo.deleteLab("12345");
@@ -228,14 +243,16 @@ describe("extended_database_repo", () => {
 
     afterEach(async () => {
       await clearExtended();
-    })
+    });
     it("should find a conditions with a given uuid", async () => {
       const actual = await extended_database_repo.findEcrConditionById("12345");
       expect(actual).toEqual(template);
     });
 
     it("should find all conditions named Dark Magic", async () => {
-      const actual = await extended_database_repo.findEcrCondition({ condition: "Dark Magic" });
+      const actual = await extended_database_repo.findEcrCondition({
+        condition: "Dark Magic",
+      });
       expect(actual[0]).toEqual(template);
     });
 
@@ -254,7 +271,7 @@ describe("extended_database_repo", () => {
         condition: "Dark Magic",
       });
       const actual = await extended_database_repo.findEcrConditionById("54321");
-      expect(actual).toEqual({...template, uuid: "54321"});
+      expect(actual).toEqual({ ...template, uuid: "54321" });
     });
 
     it("should delete a condition with a given id", async () => {
@@ -277,14 +294,16 @@ describe("extended_database_repo", () => {
 
     afterEach(async () => {
       await clearExtended();
-    })
+    });
     it("should find a rule summary with a given uuid", async () => {
       const actual = await extended_database_repo.findEcrRuleById("12345");
       expect(actual).toEqual(template);
     });
 
     it("should find all rule summaries named Dark Magic", async () => {
-      const actual = await extended_database_repo.findEcrRule({ rule_summary: "Dark Magic" });
+      const actual = await extended_database_repo.findEcrRule({
+        rule_summary: "Dark Magic",
+      });
       expect(actual[0]).toEqual(template);
     });
 
@@ -303,7 +322,7 @@ describe("extended_database_repo", () => {
         rule_summary: "Dark Magic",
       });
       const actual = await extended_database_repo.findEcrRuleById("54321");
-      expect(actual).toEqual({...template, uuid: "54321"});
+      expect(actual).toEqual({ ...template, uuid: "54321" });
     });
 
     it("should delete a rule summary with a given id", async () => {

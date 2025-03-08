@@ -14,13 +14,13 @@ var db_type = process.env.METADATA_DATABASE_TYPE;
 var db_schema = process.env.METADATA_DATABASE_SCHEMA;
 
 switch (db_type) {
-  case 'sqlserver':
+  case "sqlserver":
     if (db_schema === "extended") {
       db = sqlConstructor("extended");
     } else {
       db = sqlConstructor("core");
     }
-  case 'postgres':
+  case "postgres":
     if (db_schema === "extended") {
       db = pgConstructor("extended");
     } else {

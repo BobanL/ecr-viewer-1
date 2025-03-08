@@ -253,7 +253,7 @@ const getTotalCoreEcrCount = async (
   );
   const query = `SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${whereClause}`;
   const result = await sql.raw<{ count: number }>(query).execute(db);
-  return (result.rows[0].count);
+  return result.rows[0].count;
 };
 
 const getTotalExtendedEcrCount = async (

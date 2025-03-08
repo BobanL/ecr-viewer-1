@@ -120,10 +120,7 @@ export async function deleteEcr(
     return undefined;
   }
 
-  await coredb
-    .deleteFrom("ecr_data")
-    .where("eICR_ID", "=", eICR_ID)
-    .execute();
+  await coredb.deleteFrom("ecr_data").where("eICR_ID", "=", eICR_ID).execute();
 
   return ecr;
 }

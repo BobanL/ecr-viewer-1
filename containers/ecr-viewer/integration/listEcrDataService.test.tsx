@@ -13,7 +13,14 @@ import {
   listEcrData,
   generateFilterDateStatementPostgres,
 } from "@/app/services/listEcrDataService";
-import { buildCoreAlias, dropCoreAlias, buildExtendedAlias, dropExtendedAlias, clearCoreAlias, clearExtendedAlias } from "@/app/api/services/db_schema";
+import {
+  buildCoreAlias,
+  dropCoreAlias,
+  buildExtendedAlias,
+  dropExtendedAlias,
+  clearCoreAlias,
+  clearExtendedAlias,
+} from "@/app/api/services/db_schema";
 import { db } from "@/app/api/services/database";
 
 const testDateRange = {
@@ -32,7 +39,7 @@ const coreTemplate = {
   patient_birth_date: new Date("2024-12-01T12:00:00Z"),
   date_created: new Date("2024-12-01T12:00:00Z"),
   report_date: new Date("2024-12-01T12:00:00Z"),
-}
+};
 
 const extendedTemplate = {
   eicr_id: "12345",
@@ -72,7 +79,7 @@ const extendedTemplate = {
   reason_for_visit: "Checkup",
   active_problems: ["Dead"],
   date_created: new Date("2025-01-01"),
-}
+};
 
 describe("listEcrDataService", () => {
   describe("process Metadata", () => {
@@ -172,14 +179,16 @@ describe("listEcrDataService", () => {
           uuid: "12345",
           eicr_id: "12345",
           condition: "Condition1",
-        }).execute();
+        })
+        .execute();
       await (db as any)
         .insertInto("ecr_viewer.ecr_rr_rule_summaries")
         .values({
           uuid: "12345",
           ecr_rr_conditions_id: "12345",
           rule_summary: "Rule1",
-        }).execute();
+        })
+        .execute();
     });
 
     afterEach(async () => {
@@ -224,12 +233,8 @@ describe("listEcrDataService", () => {
           patient_first_name: "Billy",
           patient_last_name: "Bob",
           patient_report_date: "12/01/2024 12:00\u00A0AM\u00A0EST",
-          reportable_conditions: [
-            "Condition1",
-          ],
-          rule_summaries: [
-            "Rule1"
-          ],
+          reportable_conditions: ["Condition1"],
+          rule_summaries: ["Rule1"],
           eicr_set_id: "123",
           eicr_version_number: "1",
         },
@@ -256,12 +261,8 @@ describe("listEcrDataService", () => {
           patient_first_name: "Billy",
           patient_last_name: "Bob",
           patient_report_date: "12/01/2024 12:00\u00A0AM\u00A0EST",
-          reportable_conditions: [
-            "Condition1",
-          ],
-          rule_summaries: [
-            "Rule1"
-          ],
+          reportable_conditions: ["Condition1"],
+          rule_summaries: ["Rule1"],
           eicr_set_id: "123",
           eicr_version_number: "1",
         },
@@ -275,7 +276,7 @@ describe("listEcrDataService", () => {
       await buildExtendedAlias();
     });
 
-    afterAll( async () => {
+    afterAll(async () => {
       await dropExtendedAlias();
     });
 
@@ -290,14 +291,16 @@ describe("listEcrDataService", () => {
           uuid: "12345",
           eicr_id: "12345",
           condition: "Condition1",
-        }).execute();
+        })
+        .execute();
       await (db as any)
         .insertInto("ecr_viewer.ecr_rr_rule_summaries")
         .values({
           uuid: "12345",
           ecr_rr_conditions_id: "12345",
           rule_summary: "Rule1",
-        }).execute();
+        })
+        .execute();
     });
 
     afterEach(async () => {

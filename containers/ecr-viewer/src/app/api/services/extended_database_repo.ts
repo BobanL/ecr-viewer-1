@@ -27,7 +27,9 @@ import {
  * @param id - the ID of the ExtendedEcr being looked up
  * @returns an eICR object
  */
-export async function findExtendedEcrById(id: string | null): Promise<ExtendedECR | undefined> {
+export async function findExtendedEcrById(
+  id: string | null,
+): Promise<ExtendedECR | undefined> {
   if (!id) {
     throw new Error("eICR ID is required.");
   }
@@ -275,14 +277,29 @@ export async function findLabById(id: string): Promise<ECRLabs | undefined> {
   if (!val) {
     return undefined;
   }
-  if (val.test_result_quantitative !== undefined && val.test_result_quantitative !== null) {
-    val.test_result_quantitative = parseFloat(val.test_result_quantitative.toString());
+  if (
+    val.test_result_quantitative !== undefined &&
+    val.test_result_quantitative !== null
+  ) {
+    val.test_result_quantitative = parseFloat(
+      val.test_result_quantitative.toString(),
+    );
   }
-  if (val.test_result_reference_range_high_value !== undefined && val.test_result_reference_range_high_value !== null) {
-    val.test_result_reference_range_high_value = parseFloat(val.test_result_reference_range_high_value.toString());
+  if (
+    val.test_result_reference_range_high_value !== undefined &&
+    val.test_result_reference_range_high_value !== null
+  ) {
+    val.test_result_reference_range_high_value = parseFloat(
+      val.test_result_reference_range_high_value.toString(),
+    );
   }
-  if (val.test_result_reference_range_low_value !== undefined && val.test_result_reference_range_low_value !== null) {
-    val.test_result_reference_range_low_value = parseFloat(val.test_result_reference_range_low_value.toString());
+  if (
+    val.test_result_reference_range_low_value !== undefined &&
+    val.test_result_reference_range_low_value !== null
+  ) {
+    val.test_result_reference_range_low_value = parseFloat(
+      val.test_result_reference_range_low_value.toString(),
+    );
   }
   return val;
 }
@@ -304,17 +321,32 @@ export async function findLab(criteria: Partial<ECRLabs>): Promise<ECRLabs[]> {
   }
   const vals = await query.selectAll().execute();
   for (let val of vals) {
-    if (val.test_result_quantitative !== undefined && val.test_result_quantitative !== null) {
-      val.test_result_quantitative = parseFloat(val.test_result_quantitative.toString());
+    if (
+      val.test_result_quantitative !== undefined &&
+      val.test_result_quantitative !== null
+    ) {
+      val.test_result_quantitative = parseFloat(
+        val.test_result_quantitative.toString(),
+      );
     }
-    if (val.test_result_reference_range_high_value !== undefined && val.test_result_reference_range_high_value !== null) {
-      val.test_result_reference_range_high_value = parseFloat(val.test_result_reference_range_high_value.toString());
+    if (
+      val.test_result_reference_range_high_value !== undefined &&
+      val.test_result_reference_range_high_value !== null
+    ) {
+      val.test_result_reference_range_high_value = parseFloat(
+        val.test_result_reference_range_high_value.toString(),
+      );
     }
-    if (val.test_result_reference_range_low_value !== undefined && val.test_result_reference_range_low_value !== null) {
-      val.test_result_reference_range_low_value = parseFloat(val.test_result_reference_range_low_value.toString());
+    if (
+      val.test_result_reference_range_low_value !== undefined &&
+      val.test_result_reference_range_low_value !== null
+    ) {
+      val.test_result_reference_range_low_value = parseFloat(
+        val.test_result_reference_range_low_value.toString(),
+      );
     }
   }
-  return vals
+  return vals;
 }
 
 /**

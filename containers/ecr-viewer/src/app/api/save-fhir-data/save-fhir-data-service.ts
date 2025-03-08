@@ -347,55 +347,53 @@ export const saveCoreMetadata = async (
     }
 
     // Start transaction
-    await (db as Kysely<Core>)
-      .transaction()
-      .execute(async (trx) => {
-        // Insert main ECR metadata
-        await trx
-          .insertInto("ecr_data")
-          .values({
-            eICR_ID: ecrId,
-            set_id: metadata.eicr_set_id,
-            patient_name_last: metadata.last_name,
-            patient_name_first: metadata.first_name,
-            patient_birth_date: new Date(metadata.birth_date),
-            data_source: "DB",
-            report_date: new Date(metadata.report_date),
-            eicr_version_number: metadata.eicr_version_number,
-          })
-          .execute();
+    await (db as Kysely<Core>).transaction().execute(async (trx) => {
+      // Insert main ECR metadata
+      await trx
+        .insertInto("ecr_data")
+        .values({
+          eICR_ID: ecrId,
+          set_id: metadata.eicr_set_id,
+          patient_name_last: metadata.last_name,
+          patient_name_first: metadata.first_name,
+          patient_birth_date: new Date(metadata.birth_date),
+          data_source: "DB",
+          report_date: new Date(metadata.report_date),
+          eicr_version_number: metadata.eicr_version_number,
+        })
+        .execute();
 
-        // Loop through each condition/rule object in rr array
-        if (metadata.rr && metadata.rr.length > 0) {
-          for (const rrItem of metadata.rr) {
-            // Insert condition into ecr_rr_conditions
-            const tempId = randomUUID();
-            await trx
-              .insertInto("ecr_rr_conditions")
-              .values({
-                uuid: tempId,
-                eICR_ID: ecrId,
-                condition: rrItem.condition,
-              })
-              .execute();
+      // Loop through each condition/rule object in rr array
+      if (metadata.rr && metadata.rr.length > 0) {
+        for (const rrItem of metadata.rr) {
+          // Insert condition into ecr_rr_conditions
+          const tempId = randomUUID();
+          await trx
+            .insertInto("ecr_rr_conditions")
+            .values({
+              uuid: tempId,
+              eICR_ID: ecrId,
+              condition: rrItem.condition,
+            })
+            .execute();
 
-            // Loop through the rule summaries array
-            if (rrItem.rule_summaries && rrItem.rule_summaries.length > 0) {
-              for (const summaryObj of rrItem.rule_summaries) {
-                // Insert each associated summary into ecr_rr_rule_summaries
-                await trx
-                  .insertInto("ecr_rr_rule_summaries")
-                  .values({
-                    uuid: randomUUID(),
-                    ecr_rr_conditions_id: tempId,
-                    rule_summary: summaryObj.summary,
-                  })
-                  .execute();
-              }
+          // Loop through the rule summaries array
+          if (rrItem.rule_summaries && rrItem.rule_summaries.length > 0) {
+            for (const summaryObj of rrItem.rule_summaries) {
+              // Insert each associated summary into ecr_rr_rule_summaries
+              await trx
+                .insertInto("ecr_rr_rule_summaries")
+                .values({
+                  uuid: randomUUID(),
+                  ecr_rr_conditions_id: tempId,
+                  rule_summary: summaryObj.summary,
+                })
+                .execute();
             }
           }
         }
-      })
+      }
+    });
     return {
       message: "Success. Saved metadata to database.",
       status: 200,
@@ -430,7 +428,11 @@ export const saveWithMetadata = async (
   try {
     [fhirDataResult, metadataResult] = await Promise.all([
       saveFhirData(fhirBundle, ecrId, saveSource),
-      saveFhirMetadata(ecrId, metadataType, metadata as BundleMetadata | BundleExtendedMetadata),
+      saveFhirMetadata(
+        ecrId,
+        metadataType,
+        metadata as BundleMetadata | BundleExtendedMetadata,
+      ),
     ]);
   } catch (error: unknown) {
     const message = "Failed to save FHIR data with metadata.";
