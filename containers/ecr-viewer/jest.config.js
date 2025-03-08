@@ -17,6 +17,6 @@ const customJestConfig = {
   testPathIgnorePatterns: ["<rootDir>/e2e", "<rootDir>/integration/"],
   collectCoverage: true,
 };
-
+// "<rootDir>/integration/"
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
 module.exports = createJestConfig(customJestConfig);

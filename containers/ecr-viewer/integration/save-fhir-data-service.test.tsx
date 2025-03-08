@@ -106,7 +106,6 @@ const baseExtendedMetadata: BundleExtendedMetadata = {
 
 describe("saveExtendedMetadata", () => {
   beforeAll(async () => {
-    process.env.METADATA_DATABASE_SCHEMA = "extended";
     await buildExtended();
   });
 
@@ -120,7 +119,6 @@ describe("saveExtendedMetadata", () => {
 
   it("should save without any rr", async () => {
     const resp = await saveExtendedMetadata(baseExtendedMetadata, "1-2-3-4");
-
     expect(resp.message).toEqual("Success. Saved metadata to database.");
     expect(resp.status).toEqual(200);
   });

@@ -13,13 +13,66 @@ import {
   listEcrData,
   generateFilterDateStatementPostgres,
 } from "@/app/services/listEcrDataService";
-import { buildCoreAlias, dropCoreAlias } from "@/app/api/services/db_schema";
+import { buildCoreAlias, dropCoreAlias, buildExtendedAlias, dropExtendedAlias, clearCoreAlias, clearExtendedAlias } from "@/app/api/services/db_schema";
 import { db } from "@/app/api/services/database";
 
 const testDateRange = {
   startDate: new Date("12-01-2024"),
   endDate: new Date("12-02-2024"),
 };
+
+const coreTemplate = {
+  eicr_id: "12345",
+  set_id: "123",
+  data_source: "DB",
+  fhir_reference_link: "",
+  eicr_version_number: "1",
+  patient_name_first: "Billy",
+  patient_name_last: "Bob",
+  patient_birth_date: new Date("2024-12-01T12:00:00Z"),
+  date_created: new Date("2024-12-01T12:00:00Z"),
+  report_date: new Date("2024-12-01T12:00:00Z"),
+}
+
+const extendedTemplate = {
+  eicr_id: "12345",
+  set_id: "12345",
+  fhir_reference_link: "http://example.com",
+  last_name: "Kenobi",
+  first_name: "Obi-Wan",
+  birth_date: new Date("2024-12-31T05:00:00.000Z"),
+  gender: "Based",
+  birth_sex: "Based",
+  gender_identity: "Based",
+  race: "Star Guy",
+  ethnicity: "Star Guy",
+  latitude: 0.0,
+  longitude: 0.0,
+  homelessness_status: "Homeless",
+  disabilities: "None",
+  tribal_affiliation: "None",
+  tribal_enrollment_status: "None",
+  current_job_title: "Jedi Master",
+  current_job_industry: "Jedi Order",
+  usual_occupation: "Jedi Master",
+  usual_industry: "Jedi Order",
+  preferred_language: "Galactic Basic",
+  pregnancy_status: "Not Pregnant",
+  rr_id: "12345",
+  processing_status: "Processed",
+  eicr_version_number: "1.0",
+  authoring_date: new Date("2024-12-31T05:00:00.000Z"),
+  authoring_provider: "Dr. Droid",
+  provider_id: "12345",
+  facility_id: "12345",
+  facility_name: "Jedi Temple",
+  encounter_type: "Checkup",
+  encounter_start_date: new Date("2024-12-31T05:00:00.000Z"),
+  encounter_end_date: new Date("2024-12-31T05:00:00.000Z"),
+  reason_for_visit: "Checkup",
+  active_problems: ["Dead"],
+  date_created: new Date("2025-01-01"),
+}
 
 describe("listEcrDataService", () => {
   describe("process Metadata", () => {
@@ -94,35 +147,47 @@ describe("listEcrDataService", () => {
         },
       ];
       const result = processCoreMetadata(responseBody);
-
       expect(result).toEqual(expected);
     });
   });
 
   describe("listCoreEcrData", () => {
-    interface EcrDisplay {
-      ecrId: string;
-      patient_first_name: string;
-      patient_last_name: string;
-      patient_date_of_birth: string | undefined;
-      reportable_conditions: string[];
-      rule_summaries: string[];
-      patient_report_date: string;
-      date_created: string;
-      eicr_set_id: string | undefined;
-      eicr_version_number: string | undefined;
-    }
     beforeAll(async () => {
       process.env.METADATA_DATABASE_SCHEMA = "core";
       await buildCoreAlias();
     });
 
     afterAll(async () => {
-      delete process.env.METADATA_DATABASE_TYPE;
       await dropCoreAlias();
     });
 
+    beforeEach(async () => {
+      await (db as any)
+        .insertInto("ecr_viewer.ecr_data")
+        .values(coreTemplate)
+        .execute();
+      await (db as any)
+        .insertInto("ecr_viewer.ecr_rr_conditions")
+        .values({
+          uuid: "12345",
+          eicr_id: "12345",
+          condition: "Condition1",
+        }).execute();
+      await (db as any)
+        .insertInto("ecr_viewer.ecr_rr_rule_summaries")
+        .values({
+          uuid: "12345",
+          ecr_rr_conditions_id: "12345",
+          rule_summary: "Rule1",
+        }).execute();
+    });
+
+    afterEach(async () => {
+      await clearCoreAlias();
+    });
+
     it("should return empty array when no data is found", async () => {
+      await clearCoreAlias();
       const startIndex = 0;
       const itemsPerPage = 25;
       const columnName = "date_created";
@@ -140,23 +205,6 @@ describe("listEcrDataService", () => {
     });
 
     it("should return data when found", async () => {
-      await (db as any)
-        .insertInto("ecr_viewer.ecr_data")
-        .values({
-          eicr_id: "12345",
-          set_id: "123",
-          data_source: "DB",
-          fhir_reference_link: "",
-          eicr_version_number: "1",
-          patient_name_first: "Billy",
-          patient_name_last: "Bob",
-          patient_birth_date: new Date("2024-12-01T12:00:00Z"),
-          date_created: new Date("2024-12-01T12:00:00Z"),
-          report_date: new Date("2024-12-01T12:00:00Z"),
-        })
-        .returningAll()
-        .executeTakeFirstOrThrow();
-      // @ts-ignore TS2364
       const startIndex = 0;
       const itemsPerPage = 25;
       const columnName = "date_created";
@@ -176,8 +224,12 @@ describe("listEcrDataService", () => {
           patient_first_name: "Billy",
           patient_last_name: "Bob",
           patient_report_date: "12/01/2024 12:00\u00A0AM\u00A0EST",
-          reportable_conditions: [null],
-          rule_summaries: [null],
+          reportable_conditions: [
+            "Condition1",
+          ],
+          rule_summaries: [
+            "Rule1"
+          ],
           eicr_set_id: "123",
           eicr_version_number: "1",
         },
@@ -185,7 +237,6 @@ describe("listEcrDataService", () => {
     });
 
     it("should get data from the fhir_metadata table", async () => {
-      // @ts-ignore TS2364
       const startIndex = 0;
       const itemsPerPage = 25;
       const columnName = "date_created";
@@ -205,8 +256,12 @@ describe("listEcrDataService", () => {
           patient_first_name: "Billy",
           patient_last_name: "Bob",
           patient_report_date: "12/01/2024 12:00\u00A0AM\u00A0EST",
-          reportable_conditions: [null],
-          rule_summaries: [null],
+          reportable_conditions: [
+            "Condition1",
+          ],
+          rule_summaries: [
+            "Rule1"
+          ],
           eicr_set_id: "123",
           eicr_version_number: "1",
         },
@@ -214,113 +269,78 @@ describe("listEcrDataService", () => {
     });
   });
 
-  describe("listEcrDataService with SQL Server", () => {
+  describe("listExtendedEcrData", () => {
     beforeAll(async () => {
-      process.env.METADATA_DATABASE_TYPE = "postgres";
-      process.env.METADATA_DATABASE_SCHEMA = "core";
-      await buildCoreAlias();
+      process.env.METADATA_DATABASE_SCHEMA = "extended";
+      await buildExtendedAlias();
     });
 
-    afterAll(async () => {
-      delete process.env.METADATA_DATABASE_TYPE;
-      await dropCoreAlias();
-    });
-    beforeEach(() => {
-      process.env.METADATA_DATABASE_TYPE = "sqlserver";
-    });
-    afterAll(() => {
-      process.env.METADATA_DATABASE_TYPE = "postgres";
+    afterAll( async () => {
+      await dropExtendedAlias();
     });
 
-    describe("listExtendedEcrData", () => {
-      it("should return data when found", async () => {
-        // Arrange
-        const insert = await (db as any)
-          .insertInto("ecr_viewer.ecr_data")
-          .values({
-            eicr_id: "12345",
-            set_id: "123",
-            data_source: "DB",
-            fhir_reference_link: "",
-            eicr_version_number: "1",
-            patient_name_first: "Billy",
-            patient_name_last: "Bob",
-            patient_birth_date: new Date("2024-12-01T12:00:00Z"),
-            date_created: new Date("2024-12-01T12:00:00Z"),
-            report_date: new Date("2024-12-01T12:00:00Z"),
-          })
-          .returningAll()
-          .executeTakeFirstOrThrow();
-        const mockRecordset = [
-          {
-            eICR_ID: "123",
-            first_name: "John",
-            last_name: "Doe",
-            birth_date: new Date("1990-01-01"),
-            encounter_start_date: new Date("2023-01-01T07:30:00Z"),
-            date_created: new Date("2023-01-02T07:45:00Z"),
-            conditions: "Condition1,Condition2",
-            rule_summaries: "Rule1,Rule2",
-            set_id: "123",
-            eicr_version_number: "1",
-          },
-          {
-            eICR_ID: "124",
-            first_name: "Jane",
-            last_name: "Doe",
-            birth_date: new Date("1990-01-02"),
-            encounter_start_date: new Date("2023-01-02T07:30:00Z"),
-            date_created: new Date("2023-01-01T07:45:00Z"),
-            conditions: "Condition1,Condition2",
-            rule_summaries: "Rule1,Rule2",
-          },
-        ];
-
-        // Act
-        const result = await listEcrData(
-          0,
-          10,
-          "report_date",
-          "DESC",
-          testDateRange,
-        );
-
-        // Assert
-        expect(result).toEqual([
-          {
-            ecrId: "12345",
-            patient_first_name: "Billy",
-            patient_last_name: "Bob",
-            patient_date_of_birth: "12/01/2024",
-            reportable_conditions: [null],
-            rule_summaries: [null],
-            date_created: "12/01/2024 7:00\u00A0AM\u00A0EST",
-            patient_report_date: "12/01/2024 12:00\u00A0AM\u00A0EST",
-            eicr_set_id: "123",
-            eicr_version_number: "1",
-          },
-        ]);
-      });
+    beforeEach(async () => {
+      await (db as any)
+        .insertInto("ecr_viewer.ecr_data")
+        .values(extendedTemplate)
+        .execute();
+      await (db as any)
+        .insertInto("ecr_viewer.ecr_rr_conditions")
+        .values({
+          uuid: "12345",
+          eicr_id: "12345",
+          condition: "Condition1",
+        }).execute();
+      await (db as any)
+        .insertInto("ecr_viewer.ecr_rr_rule_summaries")
+        .values({
+          uuid: "12345",
+          ecr_rr_conditions_id: "12345",
+          rule_summary: "Rule1",
+        }).execute();
     });
 
-    describe("getTotalEcrCount with SQL Server", () => {
-      it("should return count when DATABASE_TYPE is sqlserver", async () => {
-        // Act
-        const count = await getTotalEcrCount(testDateRange);
+    afterEach(async () => {
+      await clearExtendedAlias();
+    });
 
-        // Assert
-        expect(count).toEqual("1");
-      });
+    it("should return empty array when no data is found", async () => {
+      await clearExtendedAlias();
+      const startIndex = 0;
+      const itemsPerPage = 25;
+      const columnName = "date_created";
+      const direction = "DESC";
+
+      const result = await listEcrData(
+        startIndex,
+        itemsPerPage,
+        columnName,
+        direction,
+        testDateRange,
+      );
+
+      expect(result).toBeEmpty();
+    });
+
+    it("should return data when found", async () => {
+      // Act
+      const result = await listEcrData(
+        0,
+        10,
+        "report_date",
+        "DESC",
+        testDateRange,
+      );
+      // Assert
+      expect(result).toEqual([extendedTemplate]);
     });
   });
 
   describe("get total ecr count", () => {
     beforeAll(async () => {
-      process.env.METADATA_DATABASE_TYPE = "postgres";
       await buildCoreAlias();
     });
     afterAll(async () => {
-      delete process.env.METADATA_DATABASE_TYPE;
       await dropCoreAlias();
     });
 
@@ -329,12 +349,10 @@ describe("listEcrDataService", () => {
       expect(actual).toEqual("0");
     });
     it("should use search term in count query", async () => {
-      // @ts-ignore TS2364
       const actual = await getTotalEcrCount(testDateRange, "blah", undefined);
       expect(actual).toEqual("0");
     });
     it("should escape the search term in count query", async () => {
-      // @ts-ignore TS2364
       const actual = await getTotalEcrCount(
         testDateRange,
         "O'Riley",
@@ -343,7 +361,6 @@ describe("listEcrDataService", () => {
       expect(actual).toEqual("0");
     });
     it("should use filter conditions in count query", async () => {
-      // @ts-ignore TS2364
       const actual = await getTotalEcrCount(testDateRange, "", [
         "Anthrax (disorder)",
       ]);

@@ -127,7 +127,7 @@ async function listExtendedEcrData(
 ): Promise<EcrDisplay[]> {
   try {
     const conditionsSubQuery =
-      "SELECT STRING_AGG([condition], ',') FROM (SELECT DISTINCT erc.[condition] FROM ecr_viewer.ecr_rr_conditions AS erc WHERE erc.eICR_ID = ed.eICR_ID) AS distinct_conditions";
+      "SELECT STRING_AGG(condition, ',') FROM (SELECT DISTINCT erc.condition FROM ecr_viewer.ecr_rr_conditions AS erc WHERE erc.eICR_ID = ed.eICR_ID) AS distinct_conditions";
     const ruleSummariesSubQuery =
       "SELECT STRING_AGG(rule_summary, ',') FROM (SELECT DISTINCT ers.rule_summary FROM ecr_viewer.ecr_rr_rule_summaries AS ers LEFT JOIN ecr_viewer.ecr_rr_conditions as erc ON ers.ecr_rr_conditions_id = erc.uuid WHERE erc.eICR_ID = ed.eICR_ID) AS distinct_rule_summaries";
     const sortStatement = generateSqlServerSortStatement(
@@ -251,13 +251,9 @@ const getTotalCoreEcrCount = async (
     searchTerm,
     filterConditions,
   );
-  const result = await sql<{ count: number }>`
-  SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${sql.raw(
-    whereClause,
-  )}
-  `.execute(db);
-
-  return result.rows[0].count;
+  const query = `SELECT count(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data as ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc on ed.eICR_ID = erc.eICR_ID WHERE ${whereClause}`;
+  const result = await sql.raw<{ count: number }>(query).execute(db);
+  return (result.rows[0].count);
 };
 
 const getTotalExtendedEcrCount = async (
@@ -273,7 +269,7 @@ const getTotalExtendedEcrCount = async (
     );
 
     const query = `SELECT COUNT(DISTINCT ed.eICR_ID) as count FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID WHERE ${whereStatement}`;
-    const result = await sql<{ count: number }>`${query}`.execute(db);
+    const result = await sql.raw<{ count: number }>(query).execute(db);
     return result.rows[0].count;
   } catch (error: unknown) {
     console.error(error);

@@ -48,8 +48,8 @@ export interface ecr_data {
 
 export interface patient_address {
   uuid: Generated<string>;
-  use: "home" | "work" | "temp" | "old" | "billing" | undefined;
-  type: "postal" | "physical" | "both" | undefined;
+  use: string | undefined;
+  type: string | undefined;
   text: string | undefined;
   line: string[] | undefined;
   city: string | undefined;

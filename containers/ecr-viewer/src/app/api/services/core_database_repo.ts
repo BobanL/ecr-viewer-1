@@ -14,6 +14,8 @@ import {
 import { Core } from "./core_types";
 import { db } from "./database";
 
+const coredb = db as Kysely<Core>;
+
 // ECR_DATA
 
 /**
@@ -28,7 +30,7 @@ export async function findEcrById(id: string | null): Promise<ECR | undefined> {
     throw new Error("eICR ID is required.");
   }
   try {
-    return await (db as Kysely<Core>)
+    return await coredb
       .selectFrom("ecr_data")
       .where("eICR_ID", "=", id)
       .selectAll()
@@ -46,9 +48,9 @@ export async function findEcrById(id: string | null): Promise<ECR | undefined> {
  * @returns an eICR object
  */
 export async function findEcr(criteria: Partial<ECR> | null): Promise<ECR[]> {
-  let query = (db as Kysely<Core>).selectFrom("ecr_data");
+  let query = coredb.selectFrom("ecr_data");
 
-  if (!criteria || criteria === null) {
+  if (!criteria) {
     throw new Error("eICR Criteria is required.");
   }
 
@@ -69,11 +71,11 @@ export async function findEcr(criteria: Partial<ECR> | null): Promise<ECR[]> {
  * @returns the created eICR object
  */
 export async function createEcr(ecr: NewECR | null): Promise<ECR | undefined> {
-  if (!ecr || ecr === null) {
+  if (!ecr) {
     throw new Error("eICR Data is required.");
   }
   try {
-    return await (db as Kysely<Core>)
+    return await coredb
       .insertInto("ecr_data")
       .values(ecr)
       .returningAll()
@@ -95,7 +97,7 @@ export async function updateEcr(
   eICR_ID: string | null,
   updateWith: ECRUpdate,
 ): Promise<void> {
-  await (db as Kysely<Core>)
+  await coredb
     .updateTable("ecr_data")
     .set(updateWith)
     .where("eICR_ID", "=", eICR_ID)
@@ -118,7 +120,7 @@ export async function deleteEcr(
     return undefined;
   }
 
-  await (db as Kysely<Core>)
+  await coredb
     .deleteFrom("ecr_data")
     .where("eICR_ID", "=", eICR_ID)
     .execute();
@@ -138,7 +140,7 @@ export async function deleteEcr(
 export async function findEcrConditionById(
   id: string,
 ): Promise<ECRConditions | undefined> {
-  return await (db as Kysely<Core>)
+  return await coredb
     .selectFrom("ecr_rr_conditions")
     .where("uuid", "=", id)
     .selectAll()
@@ -155,7 +157,7 @@ export async function findEcrConditionById(
 export async function findEcrCondition(
   criteria: Partial<ECRConditions>,
 ): Promise<ECRConditions[]> {
-  let query = (db as Kysely<Core>).selectFrom("ecr_rr_conditions");
+  let query = coredb.selectFrom("ecr_rr_conditions");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRConditions)[]) {
     if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
@@ -176,11 +178,11 @@ export async function findEcrCondition(
 export async function createEcrCondition(
   condition: NewECRConditions | null,
 ): Promise<ECRConditions | undefined> {
-  if (!condition || condition === null) {
+  if (!condition) {
     throw new Error("eICR Data is required.");
   }
   try {
-    return await (db as Kysely<Core>)
+    return await coredb
       .insertInto("ecr_rr_conditions")
       .values(condition)
       .returningAll()
@@ -202,7 +204,7 @@ export async function updateEcrCondition(
   uuid: string,
   updateWith: ECRConditionsUpdate,
 ): Promise<void> {
-  await (db as Kysely<Core>)
+  await coredb
     .updateTable("ecr_rr_conditions")
     .set(updateWith)
     .where("uuid", "=", uuid)
@@ -222,7 +224,7 @@ export async function deleteEcrCondition(
   const ecr = await findEcrConditionById(uuid);
 
   if (ecr) {
-    await (db as Kysely<Core>)
+    await coredb
       .deleteFrom("ecr_rr_conditions")
       .where("uuid", "=", uuid)
       .execute();
@@ -243,7 +245,7 @@ export async function deleteEcrCondition(
 export async function findEcrRuleById(
   id: string,
 ): Promise<ECRRuleSummaries | undefined> {
-  return await (db as Kysely<Core>)
+  return await coredb
     .selectFrom("ecr_rr_rule_summaries")
     .where("uuid", "=", id)
     .selectAll()
@@ -260,7 +262,7 @@ export async function findEcrRuleById(
 export async function findEcrRule(
   criteria: Partial<ECRRuleSummaries>,
 ): Promise<ECRRuleSummaries[]> {
-  let query = (db as Kysely<Core>).selectFrom("ecr_rr_rule_summaries");
+  let query = coredb.selectFrom("ecr_rr_rule_summaries");
 
   for (const criterium of Object.keys(criteria) as (keyof ECRRuleSummaries)[]) {
     if (criteria[criterium] !== undefined && criteria[criterium] !== null) {
@@ -281,11 +283,11 @@ export async function findEcrRule(
 export async function createEcrRule(
   rule_summary: NewECRRuleSummaries,
 ): Promise<ECRRuleSummaries | undefined> {
-  if (!rule_summary || rule_summary === null) {
+  if (!rule_summary) {
     throw new Error("eICR Data is required.");
   }
   try {
-    return await (db as Kysely<Core>)
+    return await coredb
       .insertInto("ecr_rr_rule_summaries")
       .values(rule_summary)
       .returningAll()
@@ -307,7 +309,7 @@ export async function updateEcrRule(
   uuid: string,
   updateWith: ECRRuleSummariesUpdate,
 ): Promise<void> {
-  await (db as Kysely<Core>)
+  await coredb
     .updateTable("ecr_rr_rule_summaries")
     .set(updateWith)
     .where("uuid", "=", uuid)
@@ -327,7 +329,7 @@ export async function deleteEcrRule(
   const rule_summary = await findEcrRuleById(uuid);
 
   if (rule_summary) {
-    await (db as Kysely<Core>)
+    await coredb
       .deleteFrom("ecr_rr_rule_summaries")
       .where("uuid", "=", uuid)
       .execute();

@@ -27,16 +27,24 @@ import {
  * @param id - the ID of the ExtendedEcr being looked up
  * @returns an eICR object
  */
-export async function findExtendedEcrById(id: string | null) {
+export async function findExtendedEcrById(id: string | null): Promise<ExtendedECR | undefined> {
   if (!id) {
     throw new Error("eICR ID is required.");
   }
   try {
-    return await (db as Kysely<Extended>)
+    const val = await (db as Kysely<Extended>)
       .selectFrom("ecr_data")
       .where("eICR_ID", "=", id)
       .selectAll()
       .executeTakeFirst();
+    // Type conversion
+    if (val && val.latitude !== undefined) {
+      val.latitude = parseFloat(val.latitude.toString());
+    }
+    if (val && val.longitude !== undefined) {
+      val.longitude = parseFloat(val.longitude.toString());
+    }
+    return val;
   } catch (error) {
     console.error(error);
   }
@@ -64,7 +72,17 @@ export async function findExtendedEcr(
     }
   }
 
-  return await query.selectAll().execute();
+  const vals = await query.selectAll().execute();
+  for (let val of vals) {
+    if (val && val.latitude !== undefined) {
+      val.latitude = parseFloat(val.latitude.toString());
+    }
+    if (val && val.longitude !== undefined) {
+      val.longitude = parseFloat(val.longitude.toString());
+    }
+  }
+
+  return vals;
 }
 
 /**
@@ -249,11 +267,24 @@ export async function deleteAddress(
  * @returns an eCR Lab object
  */
 export async function findLabById(id: string): Promise<ECRLabs | undefined> {
-  return await (db as Kysely<Extended>)
+  const val = await (db as Kysely<Extended>)
     .selectFrom("ecr_labs")
     .where("uuid", "=", id)
     .selectAll()
     .executeTakeFirst();
+  if (!val) {
+    return undefined;
+  }
+  if (val.test_result_quantitative !== undefined && val.test_result_quantitative !== null) {
+    val.test_result_quantitative = parseFloat(val.test_result_quantitative.toString());
+  }
+  if (val.test_result_reference_range_high_value !== undefined && val.test_result_reference_range_high_value !== null) {
+    val.test_result_reference_range_high_value = parseFloat(val.test_result_reference_range_high_value.toString());
+  }
+  if (val.test_result_reference_range_low_value !== undefined && val.test_result_reference_range_low_value !== null) {
+    val.test_result_reference_range_low_value = parseFloat(val.test_result_reference_range_low_value.toString());
+  }
+  return val;
 }
 
 /**
@@ -271,8 +302,19 @@ export async function findLab(criteria: Partial<ECRLabs>): Promise<ECRLabs[]> {
       query = query.where(criterium, "=", criteria[criterium]);
     }
   }
-
-  return await query.selectAll().execute();
+  const vals = await query.selectAll().execute();
+  for (let val of vals) {
+    if (val.test_result_quantitative !== undefined && val.test_result_quantitative !== null) {
+      val.test_result_quantitative = parseFloat(val.test_result_quantitative.toString());
+    }
+    if (val.test_result_reference_range_high_value !== undefined && val.test_result_reference_range_high_value !== null) {
+      val.test_result_reference_range_high_value = parseFloat(val.test_result_reference_range_high_value.toString());
+    }
+    if (val.test_result_reference_range_low_value !== undefined && val.test_result_reference_range_low_value !== null) {
+      val.test_result_reference_range_low_value = parseFloat(val.test_result_reference_range_low_value.toString());
+    }
+  }
+  return vals
 }
 
 /**
@@ -449,7 +491,7 @@ export async function deleteEcrCondition(
  * Finds an eCR rule summary by its ID
  * @async
  * @function findEcrRuleById
- * @param id - the ID of the record being looked up
+ * @param id - the UUID of the record being looked up
  * @returns an eCR rule object
  */
 export async function findEcrRuleById(
