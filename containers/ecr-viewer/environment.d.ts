@@ -29,7 +29,7 @@ namespace NodeJS {
     GITHUB_ID: string;
     GITHUB_SECRET: string;
     METADATA_DATABASE_SCHEMA?: "core" | "extended";
-    METADATA_DATABASE_TYPE?: "postgres" | "sqlserver";
+    METADATA_DATABASE_TYPE?: "postgres" | "sqlserver"; // TODO: Figure out how to change this to mssql or identify whether that's the right thing
     NBS_AUTH: "true" | "false";
     NBS_PUB_KEY: string;
     NEXT_PUBLIC_NON_INTEGRATED_VIEWER: "true" | "false";

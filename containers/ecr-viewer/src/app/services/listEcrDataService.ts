@@ -1,63 +1,13 @@
-import { sql } from "kysely";
+import { Kysely, SelectQueryBuilder, sql } from 'kysely';
+import { CoreSchema } from '@/app/data/db/schemas/core';
+import { ExtendedSchema } from '@/app/data/db/schemas/extended';
+import { db } from '@/app/data/db/base';
+import { DateRangePeriod } from '@/app/utils/date-utils';
+import { formatDate, formatDateTime } from './formatDateService';
+import { EcrDisplay } from './listEcrDataService'; // Assuming this is exported elsewhere
 
-import { db } from "@/app/api/services/database";
-import { DateRangePeriod } from "@/app/utils/date-utils";
+type DB = CoreSchema & ExtendedSchema;
 
-import { formatDate, formatDateTime } from "./formatDateService";
-
-export interface CoreMetadataModel {
-  eicr_id: string;
-  data_source: "DB" | "S3";
-  data_link: string;
-  patient_name_first: string;
-  patient_name_last: string;
-  patient_birth_date: Date;
-  conditions: string[];
-  rule_summaries: string[];
-  report_date: Date;
-  date_created: Date;
-  set_id: string | undefined;
-  eicr_version_number: string | undefined;
-}
-
-export interface ExtendedMetadataModel {
-  eICR_ID: string;
-  data_source: "DB" | "S3";
-  data_link: string;
-  first_name: string;
-  last_name: string;
-  birth_date: Date;
-  conditions: string;
-  rule_summaries: string;
-  encounter_start_date: Date;
-  date_created: Date;
-  set_id: string | undefined;
-  eicr_version_number: string | undefined;
-}
-
-export interface EcrDisplay {
-  ecrId: string;
-  patient_first_name: string;
-  patient_last_name: string;
-  patient_date_of_birth: string | undefined;
-  reportable_conditions: string[];
-  rule_summaries: string[];
-  patient_report_date: string;
-  date_created: string;
-  eicr_set_id: string | undefined;
-  eicr_version_number: string | undefined;
-}
-
-/**
- * @param startIndex - The index of the first item to fetch
- * @param itemsPerPage - The number of items to fetch
- * @param sortColumn - The column to sort by
- * @param sortDirection - The direction to sort by
- * @param filterDates - The date (range) to filter on
- * @param searchTerm - The search term to use
- * @param filterConditions - The condition(s) to filter on
- * @returns A promise resolving to a list of eCR metadata
- */
 export async function listEcrData(
   startIndex: number,
   itemsPerPage: number,
@@ -67,90 +17,77 @@ export async function listEcrData(
   searchTerm?: string,
   filterConditions?: string[],
 ): Promise<EcrDisplay[]> {
-  const SCHEMA_TYPE = process.env.METADATA_DATABASE_SCHEMA;
+  const SCHEMA_TYPE = process.env.METADATA_DATABASE_SCHEMA as 'core' | 'extended';
+  const isCore = SCHEMA_TYPE === 'core';
 
-  switch (SCHEMA_TYPE) {
-    case "core":
-      return listCoreEcrData(
-        startIndex,
-        itemsPerPage,
-        sortColumn,
-        sortDirection,
-        filterDates,
-        searchTerm,
-        filterConditions,
-      );
-    case "extended":
-      return listExtendedEcrData(
-        startIndex,
-        itemsPerPage,
-        sortColumn,
-        sortDirection,
-        filterDates,
-        searchTerm,
-        filterConditions,
-      );
-    default:
-      throw new Error("Unsupported database type");
+  let query = db
+    .selectFrom('ecr_viewer.ecr_data as ed')
+    .leftJoin('ecr_viewer.ecr_rr_conditions as erc', 'ed.eICR_ID', 'erc.eICR_ID')
+    .leftJoin('ecr_viewer.ecr_rr_rule_summaries as ers', 'erc.uuid', 'ers.ecr_rr_conditions_id')
+    .groupBy('ed.eICR_ID');
+
+  // Select fields based on schema
+  if (isCore) {
+    query = query.select([
+      'ed.eICR_ID',
+      'ed.patient_name_first',
+      'ed.patient_name_last',
+      'ed.patient_birth_date',
+      'ed.date_created',
+      'ed.report_date',
+      'ed.set_id',
+      'ed.eicr_version_number',
+      sql`ARRAY_AGG(DISTINCT erc.condition)`.as('conditions'),
+      sql`ARRAY_AGG(DISTINCT ers.rule_summary)`.as('rule_summaries'),
+    ]) as SelectQueryBuilder<DB, 'ed' | 'erc' | 'ers', CoreMetadataModel>;
+  } else {
+    query = query.select([
+      'ed.eICR_ID',
+      'ed.first_name',
+      'ed.last_name',
+      'ed.birth_date',
+      'ed.encounter_start_date',
+      'ed.date_created',
+      'ed.set_id',
+      'ed.eicr_version_number',
+      sql`STRING_AGG(erc.condition, ',')`.as('conditions'),
+      sql`STRING_AGG(ers.rule_summary, ',')`.as('rule_summaries'),
+    ]) as SelectQueryBuilder<DB, 'ed' | 'erc' | 'ers', ExtendedMetadataModel>;
   }
-}
 
-async function listCoreEcrData(
-  startIndex: number,
-  itemsPerPage: number,
-  sortColumn: string,
-  sortDirection: string,
-  filterDates: DateRangePeriod,
-  searchTerm?: string,
-  filterConditions?: string[],
-): Promise<EcrDisplay[]> {
-  const whereClause = generateCoreWhereStatement(
-    filterDates,
-    searchTerm,
-    filterConditions,
-  );
-  const sortStatement = generateSortStatement(sortColumn, sortDirection);
-  const queryString = `SELECT ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.report_date, ed.set_id, ed.eicr_version_number,  ARRAY_AGG(DISTINCT erc.condition) AS conditions, ARRAY_AGG(DISTINCT ers.rule_summary) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE ${whereClause} GROUP BY ed.eICR_ID, ed.patient_name_first, ed.patient_name_last, ed.patient_birth_date, ed.date_created, ed.report_date, ed.set_id, ed.eicr_version_number ${sortStatement} OFFSET ${startIndex.toString()} ROWS FETCH NEXT ${itemsPerPage.toString()} ROWS ONLY`;
-  const result = await sql.raw<CoreMetadataModel>(queryString).execute(db);
-  const list = result.rows;
-  return processCoreMetadata(list);
-}
-
-async function listExtendedEcrData(
-  startIndex: number,
-  itemsPerPage: number,
-  sortColumn: string,
-  sortDirection: string,
-  filterDates: DateRangePeriod,
-  searchTerm?: string,
-  filterConditions?: string[],
-): Promise<EcrDisplay[]> {
-  try {
-    const conditionsSubQuery =
-      "SELECT STRING_AGG(condition, ',') FROM (SELECT DISTINCT erc.condition FROM ecr_viewer.ecr_rr_conditions AS erc WHERE erc.eICR_ID = ed.eICR_ID) AS distinct_conditions";
-    const ruleSummariesSubQuery =
-      "SELECT STRING_AGG(rule_summary, ',') FROM (SELECT DISTINCT ers.rule_summary FROM ecr_viewer.ecr_rr_rule_summaries AS ers LEFT JOIN ecr_viewer.ecr_rr_conditions as erc ON ers.ecr_rr_conditions_id = erc.uuid WHERE erc.eICR_ID = ed.eICR_ID) AS distinct_rule_summaries";
-    const sortStatement = generateSqlServerSortStatement(
-      sortColumn,
-      sortDirection,
+  // Where clause
+  if (searchTerm) {
+    const fields = isCore ? ['ed.patient_name_first', 'ed.patient_name_last'] : ['ed.first_name', 'ed.last_name'];
+    query = query.where((eb) =>
+      eb.or(fields.map((field) => eb(field, 'ilike', `%${searchTerm}%`)))
     );
-    const whereStatement = generateWhereStatementSqlServer(
-      filterDates,
-      searchTerm,
-      filterConditions,
-    );
-
-    const queryString = `SELECT ed.eICR_ID, ed.first_name, ed.last_name, ed.birth_date, ed.encounter_start_date, ed.date_created, ed.set_id, ed.eicr_version_number, (${conditionsSubQuery}) AS conditions, (${ruleSummariesSubQuery}) AS rule_summaries FROM ecr_viewer.ecr_data ed LEFT JOIN ecr_viewer.ecr_rr_conditions erc ON ed.eICR_ID = erc.eICR_ID LEFT JOIN ecr_viewer.ecr_rr_rule_summaries ers ON erc.uuid = ers.ecr_rr_conditions_id WHERE ${whereStatement} GROUP BY ed.eICR_ID, ed.first_name, ed.last_name, ed.birth_date, ed.encounter_start_date, ed.date_created, ed.set_id, ed.eicr_version_number ${sortStatement} OFFSET ${startIndex.toString()} ROWS FETCH NEXT ${itemsPerPage.toString()} ROWS ONLY`;
-    const result = await sql
-      .raw<ExtendedMetadataModel>(queryString)
-      .execute(db);
-    const list = result.rows;
-    return processExtendedMetadata(list);
-  } catch (error: unknown) {
-    return Promise.reject(error);
   }
+  if (filterConditions?.length) {
+    query = query.where('erc.condition', 'in', filterConditions);
+  }
+  query = query
+    .where('ed.date_created', '>=', filterDates.startDate)
+    .where('ed.date_created', '<=', filterDates.endDate);
+
+  // Sorting
+  const sortDir = sortDirection.toUpperCase() === 'ASC' ? 'asc' : 'desc';
+  if (sortColumn === 'patient') {
+    query = isCore
+      ? query.orderBy(['ed.patient_name_last', 'ed.patient_name_first'], sortDir)
+      : query.orderBy(['ed.last_name', 'ed.first_name'], sortDir);
+  } else {
+    const col = isCore || sortColumn !== 'report_date' ? `ed.${sortColumn}` : 'ed.encounter_start_date';
+    query = query.orderBy(col, sortDir);
+  }
+
+  // Pagination
+  query = query.offset(startIndex).limit(itemsPerPage);
+
+  const result = await query.execute();
+  return isCore ? processCoreMetadata(result as CoreMetadataModel[]) : processExtendedMetadata(result as ExtendedMetadataModel[]);
 }
 
+// Keep processCoreMetadata, processExtendedMetadata, and other helper functions as-is for now
 /**
  * Processes a list of eCR data retrieved from Postgres.
  * @param responseBody - The response body containing eCR data from Postgres.

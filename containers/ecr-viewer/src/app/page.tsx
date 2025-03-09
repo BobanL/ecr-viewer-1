@@ -12,7 +12,7 @@ import Filters from "./components/Filters";
 import Header from "./components/Header";
 import LibrarySearch from "./components/LibrarySearch";
 import { DEFAULT_ITEMS_PER_PAGE, INITIAL_HEADERS } from "./constants";
-import { getAllConditions } from "./data/conditions";
+import { getAllConditions } from "./data/db/schemas/_shared/baseTables";
 import NotFound from "./not-found";
 import { getTotalEcrCount } from "./services/listEcrDataService";
 import { returnParamDates } from "./utils/date-utils";

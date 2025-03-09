@@ -1,22 +1,20 @@
-const nextJest = require("next/jest");
+// jest.config.ts
+const nextJest = require('next/jest');
 
-const createJestConfig = nextJest({
-  // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
-  dir: "./",
-});
+const createJestConfig = nextJest({ dir: './' });
 
-// Add any custom config to be passed to Jest
 const customJestConfig = {
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
-  testEnvironment: "jest-environment-jsdom",
-  modulePathIgnorePatterns: ["<rootDir>/.next"],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  testEnvironment: 'jest-environment-jsdom',
+  modulePathIgnorePatterns: ['<rootDir>/.next'],
   moduleNameMapper: {
-    "^mssql$": "<rootDir>/src/app/tests/__mocks__/mssql.js",
-    "^tedious$": "<rootDir>/src/app/tests/__mocks__/mssql.js",
+    '^mssql$': '<rootDir>/src/app/tests/__mocks__/mssql.js',
+    '^tedious$': '<rootDir>/src/app/tests/__mocks__/mssql.js',
+    '^kysely$': '<rootDir>/src/app/tests/__mocks__/kysely.ts', // Mock Kysely
+    '^@/app/data/db/base$': '<rootDir>/src/app/tests/__mocks__/db.ts', // Mock db import
   },
-  testPathIgnorePatterns: ["<rootDir>/e2e", "<rootDir>/integration/"],
+  testPathIgnorePatterns: ['<rootDir>/e2e', '<rootDir>/integration/'],
   collectCoverage: true,
 };
-// "<rootDir>/integration/"
-// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
+
 module.exports = createJestConfig(customJestConfig);
