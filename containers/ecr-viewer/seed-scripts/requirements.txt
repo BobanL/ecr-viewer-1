@@ -1,3 +1,0 @@
-grequests
-requests
-gevent>=23.9
