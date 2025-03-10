@@ -10,7 +10,6 @@ const customJestConfig = {
   moduleNameMapper: {
     '^mssql$': '<rootDir>/src/app/tests/__mocks__/mssql.js',
     '^tedious$': '<rootDir>/src/app/tests/__mocks__/mssql.js',
-    '^kysely$': '<rootDir>/src/app/tests/__mocks__/kysely.ts', // Mock Kysely
     '^@/app/data/db/base$': '<rootDir>/src/app/tests/__mocks__/db.ts', // Mock db import
   },
   testPathIgnorePatterns: ['<rootDir>/e2e', '<rootDir>/integration/'],
