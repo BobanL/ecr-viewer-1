@@ -21,7 +21,7 @@ import {
   clearCoreAlias,
   clearExtendedAlias,
 } from "@/app/data/db/schemas/extended/definitions";
-import { db } from "@/app/data/db/base";
+import { db } from "@/app/data/db/factory";
 
 const testDateRange = {
   startDate: new Date("12-01-2024"),

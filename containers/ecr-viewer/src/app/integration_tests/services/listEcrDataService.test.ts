@@ -1,5 +1,5 @@
 // app/services/listEcrDataService.integration.test.ts
-import { createDatabase } from '@/app/data/db/base';
+import { createDatabase } from '@/app/data/db/factory';
 import { Kysely, sql } from 'kysely';
 import { listEcrData } from './listEcrDataService';
 import { CoreSchema } from '@/app/data/db/schemas/core';

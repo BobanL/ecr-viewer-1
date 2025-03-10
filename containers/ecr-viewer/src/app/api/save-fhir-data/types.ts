@@ -90,7 +90,7 @@ export interface BundleExtendedMetadata {
   rr: RR[] | undefined;
   report_date: Date | undefined;
 }
-export interface BundleMetadata {
+export interface BundleCoreMetadata {
   last_name: string;
   first_name: string;
   birth_date: string;

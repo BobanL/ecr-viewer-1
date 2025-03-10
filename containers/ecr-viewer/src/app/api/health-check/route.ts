@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { azureBlobStorageHealthCheck } from "@/app/data/blobStorage/azureClient";
 import { s3HealthCheck } from "@/app/data/blobStorage/s3Client";
 import { postgresHealthCheck } from "@/app/data/db/dialects/postgres/helper";
-import { sqlServerHealthCheck } from "@/app/data/db/dialects/mssql/helper";
+import { sqlServerHealthCheck } from "@/app/data/db/dialects/mssql/utils/healthCheck";
 
 /**
  * Health check for ECR Viwer

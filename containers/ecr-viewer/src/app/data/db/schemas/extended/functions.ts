@@ -1,6 +1,6 @@
 import { Kysely } from "kysely";
 
-import { db } from "../../base";
+import { db } from "../../factory";
 import {
   Extended,
   ExtendedECR,
@@ -18,7 +18,7 @@ import {
   ECRRuleSummaries,
   NewECRRuleSummaries,
   ECRRuleSummariesUpdate,
-} from "./tables";
+} from "./types";
 
 /**
  * Finds an eICR by its ID

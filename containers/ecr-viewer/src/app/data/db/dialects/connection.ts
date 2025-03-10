@@ -21,4 +21,4 @@ export type BaseConnectionConfig = {
   
   export type ConnectionConfig = MssqlConnectionConfig | PostgresConnectionConfig;
   
-  export type SupportedDialects = 'mssql' | 'postgres';
+

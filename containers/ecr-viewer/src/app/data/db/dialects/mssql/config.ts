@@ -1,7 +1,7 @@
 import { MssqlDialect } from 'kysely';
 import * as tarn from 'tarn';
 import * as tedious from 'tedious';
-import { MssqlConnectionConfig } from './types';
+import { MssqlConnectionConfig } from '../connection';
 
 // Default values for environment variables
 const defaults = {

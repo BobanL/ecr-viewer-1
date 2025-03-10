@@ -6,7 +6,7 @@ import {
 } from "@/app/api/save-fhir-data/save-fhir-data-service";
 import {
   BundleExtendedMetadata,
-  BundleMetadata,
+  BundleCoreMetadata,
 } from "@/app/api/save-fhir-data/types";
 
 interface OrchestrationRawResponse {
@@ -14,14 +14,14 @@ interface OrchestrationRawResponse {
   processed_values: {
     responses: [
       { stamped_ecr: { extended_bundle: Bundle } },
-      { metadata_values: BundleExtendedMetadata | BundleMetadata }?,
+      { metadata_values: BundleExtendedMetadata | BundleCoreMetadata }?,
     ];
   };
 }
 
 interface BundleInfo {
   ecr: Bundle;
-  metadata: BundleMetadata | BundleExtendedMetadata | undefined;
+  metadata: BundleCoreMetadata | BundleExtendedMetadata | undefined;
 }
 
 /**
@@ -78,7 +78,7 @@ const getOrchestrationResponse = async (file: File): Promise<BundleInfo> => {
  */
 const saveToSource = (
   bundle: Bundle,
-  metadata: BundleMetadata | BundleExtendedMetadata | undefined,
+  metadata: BundleCoreMetadata | BundleExtendedMetadata | undefined,
 ) => {
   const ecrId = bundle.entry?.[0].resource?.id as string;
   if (metadata) {

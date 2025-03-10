@@ -10,8 +10,8 @@ import {
   ECR,
   NewECR,
   ECRUpdate,
-} from "./tables";
-import { Core } from "./tables";
+} from "./types";
+import { Core } from "./types";
 import { db } from "../../data/db/base";
 
 const coredb = db as Kysely<Core>;

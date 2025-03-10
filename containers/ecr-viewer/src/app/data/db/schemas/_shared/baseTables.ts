@@ -1,8 +1,8 @@
 import { Kysely } from "kysely";
 
-import { Core } from "@/app/data/db/schemas/core/tables";
-import { db } from "@/app/data/db/base";
-import { Extended } from "@/app/data/db/schemas/extended/tables";
+import { Core } from "@/app/data/db/schemas/core/types";
+import { db } from "@/app/data/db/factory";
+import { Extended } from "@/app/data/db/schemas/extended/types";
 
 /**
  * Retrieves all unique conditions from the ecr_rr_conditions table.

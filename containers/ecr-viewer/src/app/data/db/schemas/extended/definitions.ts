@@ -1,8 +1,8 @@
 import { Kysely, sql } from "kysely";
 
-import { Core } from "../core/tables";
-import { db } from "../../base";
-import { Extended } from "./tables";
+import { Core } from "../core/types";
+import { db } from "../../factory";
+import { Extended } from "./types";
 
 const extdb = db as Kysely<Extended>;
 const coredb = db as Kysely<Core>;

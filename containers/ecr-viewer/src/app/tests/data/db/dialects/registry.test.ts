@@ -1,4 +1,4 @@
-import { loadDialect } from '../../../../../src/app/data/db/dialects/registry';
+import { loadDialect } from '../../../../data/db/dialects/registry';
 
 describe('Supported Dialects', () => {
     it('should support postgres dialect', async () => {

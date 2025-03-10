@@ -1,7 +1,7 @@
 import { Kysely, SelectQueryBuilder, sql } from 'kysely';
 import { CoreSchema } from '@/app/data/db/schemas/core';
 import { ExtendedSchema } from '@/app/data/db/schemas/extended';
-import { db } from '@/app/data/db/base';
+import { db } from '@/app/data/db/factory';
 import { DateRangePeriod } from '@/app/utils/date-utils';
 import { formatDate, formatDateTime } from './formatDateService';
 import { EcrDisplay } from './listEcrDataService'; // Assuming this is exported elsewhere

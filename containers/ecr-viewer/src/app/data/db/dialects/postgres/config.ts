@@ -1,6 +1,6 @@
 import { PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
-import { PostgresConnectionConfig } from './types';
+import { PostgresConnectionConfig } from '../connection';
 
 // Default values for environment variables
 const defaults = {

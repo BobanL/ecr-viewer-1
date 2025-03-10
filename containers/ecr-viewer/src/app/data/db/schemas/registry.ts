@@ -1,7 +1,7 @@
 import type { CoreSchema } from '../schemas/core';
 import type { ExtendedSchema } from '../schemas/extended';
 
-type SchemaRegistry = {
+export type SchemaRegistry = {
   core: CoreSchema;
   extended: ExtendedSchema;
 };

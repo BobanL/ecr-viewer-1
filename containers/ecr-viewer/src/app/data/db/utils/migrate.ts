@@ -1,5 +1,5 @@
 import { Kysely, Migrator, FileMigrationProvider } from 'kysely';
-import { createDatabase } from './base';
+import { createDatabase } from '../factory';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 

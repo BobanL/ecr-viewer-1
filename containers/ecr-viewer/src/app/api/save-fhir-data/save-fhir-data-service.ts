@@ -1,17 +1,11 @@
-// TODO: Rewrite
 import { randomUUID } from "crypto";
-
-import { PutObjectCommand, PutObjectCommandOutput } from "@aws-sdk/client-s3";
+import { Kysely, sql } from "kysely";
 import { Bundle } from "fhir/r4";
-import { Kysely } from "kysely";
-
-import { Core } from "@/app/data/db/schemas/core/tables";
-import { db } from "@/app/data/db/base";
-import { Extended } from "@/app/data/db/schemas/extended/tables";
-import { S3_SOURCE, AZURE_SOURCE } from "@/app/api/utils";
+import { PutObjectCommand, PutObjectCommandOutput } from "@aws-sdk/client-s3";
 import { azureBlobContainerClient } from "@/app/data/blobStorage/azureClient";
 import { s3Client } from "@/app/data/blobStorage/s3Client";
-
+import { db } from "@/app/data/db/factory";
+import { S3_SOURCE, AZURE_SOURCE } from "@/app/api/utils";
 import { BundleExtendedMetadata, BundleMetadata } from "./types";
 
 interface SaveResponse {
