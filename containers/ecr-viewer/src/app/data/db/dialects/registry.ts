@@ -8,10 +8,6 @@ type DialectConfigFactory = {
   postgres: (config: Partial<ConnectionConfig>) => PostgresDialect;
 };
 
-// Debug
-console.log('PostgresDialect:', PostgresDialect);
-console.log('MssqlDialect:', MssqlDialect);
-
 const dialectFactories: DialectConfigFactory = {
   mssql: (config) => new MssqlDialect(config as any),
   postgres: (config) => new PostgresDialect(config as any),

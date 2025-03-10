@@ -12,7 +12,7 @@ describe('Supported Dialects', () => {
     });
 
     it('should throw an error for unsupported dialects', async () => {
-        await expect(loadDialect('mysql')).rejects.toThrow();
-        await expect(loadDialect('sqlite')).rejects.toThrow();
+        expect(() => loadDialect('mysql')).toThrow();
+        expect(() => loadDialect('sqlite')).toThrow();
     });
 });
