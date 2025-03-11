@@ -4,7 +4,6 @@ The Kysely-based persistence layer of the eCR viewer is designed with modularity
 
 ## Philosophy
 
-- **Prefer dynamic loading**: Schemas and dialects are loaded dynamically based on configuration, reducing hard-coded dependencies.
 - **Build for extensibility**: The codebase is structured to easily accommodate new database dialects or schemas with minimal refactoring.
 - **Avoid dialect-specific behaviors**: Kysely’s abstractions are used to minimize vendor-specific SQL, ensuring compatibility across database systems.
 
