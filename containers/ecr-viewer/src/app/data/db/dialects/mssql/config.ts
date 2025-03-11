@@ -1,9 +1,18 @@
 import { MssqlDialect } from 'kysely';
 import * as tarn from 'tarn';
 import * as tedious from 'tedious';
-import { MssqlConnectionConfig } from '../connection';
+import { BaseConnectionConfig } from '../_shared/types';
 
-// Default values for environment variables
+// MSSQL-specific connection config
+export type MssqlConnectionConfig = BaseConnectionConfig & {
+  dialect: 'mssql';
+  trustServerCertificate?: boolean;
+  connectTimeout?: number;
+  tarnMin?: number;
+  tarnMax?: number;
+};
+
+// Default values
 const defaults = {
   host: 'localhost',
   database: 'master',
@@ -26,9 +35,9 @@ export function createMssqlDialect(config: Partial<MssqlConnectionConfig> = {}):
     host: process.env.SQL_SERVER_HOST || defaults.host,
     database: process.env.SQL_SERVER_DATABASE || defaults.database,
     user: process.env.SQL_SERVER_USER || defaults.user,
-    password: process.env.SQL_SERVER_PASSWORD, // No default for security
+    password: process.env.SQL_SERVER_PASSWORD,
     port: parseInt(process.env.SQL_SERVER_PORT || String(defaults.port), 10),
-    trustServerCertificate: process.env.SQL_SERVER_TRUST_CERT === 'true' || defaults.trustServerCertificate,
+    trustServerCertificate: process.env.SQL_SERVER_TRUST_CERT !== undefined ? process.env.SQL_SERVER_TRUST_CERT === 'true' : defaults.trustServerCertificate,
     connectTimeout: parseInt(process.env.SQL_SERVER_CONNECT_TIMEOUT || String(defaults.connectTimeout), 10),
     tarnMin: parseInt(process.env.TARN_MIN || String(defaults.tarnMin), 10),
     tarnMax: parseInt(process.env.TARN_MAX || String(defaults.tarnMax), 10),

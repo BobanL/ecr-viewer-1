@@ -13,7 +13,6 @@ jest.mock('pg', () => ({
 describe('createPostgresDialect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset environment variables before each test
     delete process.env.POSTGRES_HOST;
     delete process.env.POSTGRES_DATABASE;
     delete process.env.POSTGRES_USER;
@@ -22,56 +21,111 @@ describe('createPostgresDialect', () => {
     delete process.env.POSTGRES_MAX_THREADPOOL;
   });
 
-  it('uses default values when no environment variables or config are provided', () => {
+  // Host tests
+  it('sets host to "localhost" by default when no config or POSTGRES_HOST is provided', () => {
     const dialect = createPostgresDialect();
-    expect(PostgresDialect).toHaveBeenCalledWith(
-      expect.objectContaining({
-        pool: expect.objectContaining({
-          host: 'localhost',
-          database: 'ecr_viewer_db',
-          port: 5432,
-          max: 10,
-          user: undefined,
-          password: undefined,
-        }),
-      })
-    );
+    expect(dialect.pool.host).toBe('localhost');
   });
 
-  it('overrides defaults with environment variables', () => {
-    process.env.POSTGRES_HOST = 'test-host';
-    process.env.POSTGRES_DATABASE = 'test-db';
-    process.env.POSTGRES_USER = 'test-user';
-    process.env.POSTGRES_PASSWORD = 'test-pass';
-    process.env.POSTGRES_PORT = '5000';
-    process.env.POSTGRES_MAX_THREADPOOL = '20';
-
-    const dialect = createPostgresDialect();
-    const poolConfig = dialect.pool;
-    expect(poolConfig.host).toBe('test-host');
-    expect(poolConfig.database).toBe('test-db');
-    expect(poolConfig.user).toBe('test-user');
-    expect(poolConfig.password).toBe('test-pass');
-    expect(poolConfig.port).toBe(5000);
-    expect(poolConfig.max).toBe(20);
-  });
-
-  it('overrides environment variables with provided config', () => {
+  it('overrides host default with POSTGRES_HOST environment variable', () => {
     process.env.POSTGRES_HOST = 'env-host';
-    process.env.POSTGRES_PORT = '7000';
-    const configOverride = { host: 'override-host', port: 6000 };
-    const dialect = createPostgresDialect(configOverride);
-    const poolConfig = dialect.pool;
-    expect(poolConfig.host).toBe('override-host');
-    expect(poolConfig.port).toBe(6000);
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.host).toBe('env-host');
   });
 
-  it('handles missing user and password gracefully', () => {
-    process.env.POSTGRES_USER = undefined;
-    process.env.POSTGRES_PASSWORD = undefined;
+  it('overrides POSTGRES_HOST with explicit host config parameter', () => {
+    process.env.POSTGRES_HOST = 'env-host';
+    const dialect = createPostgresDialect({ host: 'config-host' });
+    expect(dialect.pool.host).toBe('config-host');
+  });
+
+  // Database tests
+  it('sets database to "ecr_viewer_db" by default when no config or POSTGRES_DATABASE is provided', () => {
     const dialect = createPostgresDialect();
-    const poolConfig = dialect.pool;
-    expect(poolConfig.user).toBeUndefined();
-    expect(poolConfig.password).toBeUndefined();
+    expect(dialect.pool.database).toBe('ecr_viewer_db');
+  });
+
+  it('overrides database default with POSTGRES_DATABASE environment variable', () => {
+    process.env.POSTGRES_DATABASE = 'env-db';
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.database).toBe('env-db');
+  });
+
+  it('overrides POSTGRES_DATABASE with explicit database config parameter', () => {
+    process.env.POSTGRES_DATABASE = 'env-db';
+    const dialect = createPostgresDialect({ database: 'config-db' });
+    expect(dialect.pool.database).toBe('config-db');
+  });
+
+  // User tests
+  it('sets user to undefined by default when no config or POSTGRES_USER is provided', () => {
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.user).toBeUndefined();
+  });
+
+  it('overrides user default with POSTGRES_USER environment variable', () => {
+    process.env.POSTGRES_USER = 'env-user';
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.user).toBe('env-user');
+  });
+
+  it('overrides POSTGRES_USER with explicit user config parameter', () => {
+    process.env.POSTGRES_USER = 'env-user';
+    const dialect = createPostgresDialect({ user: 'config-user' });
+    expect(dialect.pool.user).toBe('config-user');
+  });
+
+  // Password tests
+  it('sets password to undefined by default when no config or POSTGRES_PASSWORD is provided', () => {
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.password).toBeUndefined();
+  });
+
+  it('overrides password default with POSTGRES_PASSWORD environment variable', () => {
+    process.env.POSTGRES_PASSWORD = 'env-pass';
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.password).toBe('env-pass');
+  });
+
+  it('overrides POSTGRES_PASSWORD with explicit password config parameter', () => {
+    process.env.POSTGRES_PASSWORD = 'env-pass';
+    const dialect = createPostgresDialect({ password: 'config-pass' });
+    expect(dialect.pool.password).toBe('config-pass');
+  });
+
+  // Port tests
+  it('sets port to 5432 by default when no config or POSTGRES_PORT is provided', () => {
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.port).toBe(5432);
+  });
+
+  it('overrides port default with POSTGRES_PORT environment variable', () => {
+    process.env.POSTGRES_PORT = '5000';
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.port).toBe(5000);
+  });
+
+  it('overrides POSTGRES_PORT with explicit port config parameter', () => {
+    process.env.POSTGRES_PORT = '5000';
+    const dialect = createPostgresDialect({ port: 6000 });
+    expect(dialect.pool.port).toBe(6000);
+  });
+
+  // Max thread pool tests
+  it('sets maxThreadPool to 10 by default when no config or POSTGRES_MAX_THREADPOOL is provided', () => {
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.max).toBe(10);
+  });
+
+  it('overrides maxThreadPool default with POSTGRES_MAX_THREADPOOL environment variable', () => {
+    process.env.POSTGRES_MAX_THREADPOOL = '20';
+    const dialect = createPostgresDialect();
+    expect(dialect.pool.max).toBe(20);
+  });
+
+  it('overrides POSTGRES_MAX_THREADPOOL with explicit maxThreadPool config parameter', () => {
+    process.env.POSTGRES_MAX_THREADPOOL = '20';
+    const dialect = createPostgresDialect({ maxThreadPool: 30 });
+    expect(dialect.pool.max).toBe(30);
   });
 });

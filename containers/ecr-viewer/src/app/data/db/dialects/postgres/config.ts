@@ -1,8 +1,14 @@
 import { PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
-import { PostgresConnectionConfig } from '../connection';
+import { BaseConnectionConfig } from '../_shared/types';
 
-// Default values for environment variables
+// Postgres-specific connection config
+export type PostgresConnectionConfig = BaseConnectionConfig & {
+  dialect: 'postgres';
+  maxThreadPool?: number;
+};
+
+// Default values
 const defaults = {
   host: 'localhost',
   database: 'ecr_viewer_db',
@@ -21,7 +27,7 @@ export function createPostgresDialect(config: Partial<PostgresConnectionConfig> 
     host: process.env.POSTGRES_HOST || defaults.host,
     database: process.env.POSTGRES_DATABASE || defaults.database,
     user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD, // No default for security
+    password: process.env.POSTGRES_PASSWORD,
     port: parseInt(process.env.POSTGRES_PORT || String(defaults.port), 10),
     maxThreadPool: parseInt(process.env.POSTGRES_MAX_THREADPOOL || String(defaults.maxThreadPool), 10),
   };
