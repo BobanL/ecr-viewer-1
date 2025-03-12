@@ -1,13 +1,12 @@
 "use client";
 
 import { Button } from "@trussworks/react-uswds";
-import { signIn } from "next-auth/react";
 
-import { ProviderDetails } from "@/app/api/auth/auth";
 import { ArrowForward } from "@/app/components/Icon";
+import { authClient } from "@/auth-client";
 
 interface RedirectProps {
-  provider: ProviderDetails;
+  provider: { id: string; name: string };
 }
 /**
  * Redirect Button component
@@ -18,13 +17,18 @@ interface RedirectProps {
  * @returns A styled sign-in button that redirects users their authentication provider.
  */
 export const RedirectButton = ({ provider }: RedirectProps) => {
+  // const { data } = authClient.useSession();
+  // console.log(data);
   return (
     <>
       <Button
         className="redirect-button"
         type="button"
         onClick={async () => {
-          await signIn(provider.id);
+          await authClient.signIn.oauth2({
+            providerId: "keycloak",
+            callbackURL: "/blah",
+          });
         }}
       >
         Sign in via {provider.name}
