@@ -6,7 +6,7 @@ import * as matchers from "jest-extended";
 import failOnConsole from "jest-fail-on-console";
 import router from "next-router-mock";
 
-import { clearEvaluateCache } from "./src/app/utils/evaluate";
+import { clearEvaluateCache } from "./src/app/ecr-viewer/utils/evaluate";
 
 global.TextEncoder = TextEncoder;
 

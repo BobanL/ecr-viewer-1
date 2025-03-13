@@ -16,7 +16,6 @@ const nextConfig = {
     instrumentationHook: true, // this needs to be here for opentelemetry
   },
   output: "standalone",
-  basePath,
   env: {
     BASE_PATH: basePath,
   },

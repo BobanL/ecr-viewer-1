@@ -7,7 +7,7 @@ export async function register() {
   setupConfigurationVariables();
 
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    await import("./app/services/instrumentation");
+    await import("./app/ecr-viewer/services/instrumentation");
   }
 }
 
