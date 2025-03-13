@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { genericOAuth } from "better-auth/plugins";
 
 export const auth = betterAuth({
+  basePath: "/ecr-viewer/api/auth",
   plugins: [
     genericOAuth({
       config: [
