@@ -882,7 +882,7 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "P7e6LOwZXhJq1MCo0GSRAQFqBOYDuaBx",
       "redirectUris": [
-        "http://localhost:3000/ecr-viewer/api/auth/callback/keycloak"
+        "http://localhost:3000/ecr-viewer/api/auth/oauth2/callback/keycloak"
       ],
       "webOrigins": ["http://localhost:3000"],
       "notBefore": 0,
