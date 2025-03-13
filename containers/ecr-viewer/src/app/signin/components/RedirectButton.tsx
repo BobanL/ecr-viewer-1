@@ -3,7 +3,7 @@
 import { Button } from "@trussworks/react-uswds";
 
 import { ArrowForward } from "@/app/components/Icon";
-import { authClient } from "@/auth-client";
+import { authClient } from "@/lib/auth-client";
 
 interface RedirectProps {
   provider: { id: string; name: string };
