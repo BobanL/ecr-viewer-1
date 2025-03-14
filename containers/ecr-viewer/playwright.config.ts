@@ -46,7 +46,7 @@ export default defineConfig({
     command: "npm run local-docker",
     url: "http://localhost:3000/ecr-viewer",
     timeout: 240 * 1000,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     stdout: "pipe",
   },
 });
