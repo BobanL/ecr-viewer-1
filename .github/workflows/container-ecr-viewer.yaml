@@ -168,7 +168,7 @@ jobs:
       - name: Run local docker and wait for it to be ready
         working-directory: ./containers/${{env.CONTAINER}}
         run: npm run local-docker:silent && ./e2e/waitForUrl.sh localhost:3000/ecr-viewer/api/health-check
-  
+
       - name: Run Playwright tests - Integrated
         working-directory: ./containers/${{env.CONTAINER}}
         run: npm run test:e2e:integrated
