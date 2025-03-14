@@ -35,7 +35,7 @@ export const providerMap: ProviderDetails[] = providers.map((provider) => ({
 }));
 
 export const handler = NextAuth({
-  providers: [keycloak(), azure()].filter((p) => p !== undefined),
+  providers,
   callbacks: {
     async redirect({ url, baseUrl }) {
       const nextURL = new URL(url, baseUrl);
@@ -48,5 +48,8 @@ export const handler = NextAuth({
       else if (new URL(url).origin === baseUrl) return url;
       return defaultUrl;
     },
+  },
+  pages: {
+    signIn: `${process.env.BASE_PATH}/signin`,
   },
 });

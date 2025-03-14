@@ -5,7 +5,7 @@ import { PlaywrightTestArgs, expect } from "@playwright/test";
  * @param props playwright test args
  * @param props.page page
  */
-export const logInToKeycloack = async ({ page }: PlaywrightTestArgs) => {
+export const logInToKeycloak = async ({ page }: PlaywrightTestArgs) => {
   await page.goto("/ecr-viewer");
   await page.waitForURL("ecr-viewer/signin?callbackUrl=%2Fecr-viewer%2F");
 

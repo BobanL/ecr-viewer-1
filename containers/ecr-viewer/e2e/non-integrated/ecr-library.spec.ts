@@ -1,10 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect } from "@playwright/test";
 
-import { logInToKeycloack } from "./utils";
+import { logInToKeycloak } from "./utils";
 
 test.describe("ecr library page", () => {
-  test.beforeEach(logInToKeycloack);
+  test.beforeEach(logInToKeycloak);
 
   test.describe("eCR Library page", () => {
     test("has title", async ({ page }) => {
