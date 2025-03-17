@@ -29,7 +29,6 @@ services:
       # Orchestration
       - ORCHESTRATION_URL=${ORCHESTRATION_URL:-http://localhost:8080/}
       # Auth
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000/ecr-viewer/api/auth/}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-EjHXcPcFD17f5nYRaQeN9ncNpOoU80HTA6x4UBUk5pM=}
       # Keycloak
       - AUTH_KEYCLOAK_ID=${AUTH_KEYCLOAK_ID:-ecr-viewer}

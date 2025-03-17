@@ -20,6 +20,16 @@ const nextConfig = {
   env: {
     BASE_PATH: basePath,
   },
+  async redirects() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${basePath}/api/:path*`,
+        basePath: false,
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = withBundleAnalyzer(nextConfig);

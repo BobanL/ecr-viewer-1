@@ -881,9 +881,7 @@
       "alwaysDisplayInConsole": true,
       "clientAuthenticatorType": "client-secret",
       "secret": "P7e6LOwZXhJq1MCo0GSRAQFqBOYDuaBx",
-      "redirectUris": [
-        "http://localhost:3000/ecr-viewer/api/auth/callback/keycloak"
-      ],
+      "redirectUris": ["http://localhost:3000/api/auth/callback/keycloak"],
       "webOrigins": ["http://localhost:3000"],
       "notBefore": 0,
       "bearerOnly": false,
