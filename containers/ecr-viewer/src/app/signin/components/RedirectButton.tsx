@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@trussworks/react-uswds";
-import { signIn } from "next-auth/react";
+import { SessionProvider, signIn } from "next-auth/react";
 
 import { ProviderDetails } from "@/app/api/auth/auth";
 import { ArrowForward } from "@/app/components/Icon";
