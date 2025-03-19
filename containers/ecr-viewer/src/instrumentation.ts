@@ -7,6 +7,7 @@ import { AZURE_SOURCE, GCP_SOURCE, S3_SOURCE } from "./app/api/utils";
  */
 export async function register() {
   setupConfigurationVariables();
+  await runDatabaseMigrations();
 
   if (process.env.NEXT_RUNTIME === "nodejs") {
     await import("./app/services/instrumentation");
@@ -53,4 +54,11 @@ function setupConfigurationVariables() {
       break;
   }
   makeEnvPublic(["NON_INTEGRATED_VIEWER"]);
+}
+
+/**
+ * Run database migrations by importing migrate package with side effects
+ */
+async function runDatabaseMigrations() {
+  await import("./app/data/db/utils/migrate");
 }
