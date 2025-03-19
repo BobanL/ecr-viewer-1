@@ -60,5 +60,7 @@ function setupConfigurationVariables() {
  * Run database migrations by importing migrate package with side effects
  */
 async function runDatabaseMigrations() {
-  await import("./app/data/db/utils/migrate");
+  if (process.env.NODE_ENV !== "development") {
+    await import("./app/data/db/utils/migrate");
+  }
 }
