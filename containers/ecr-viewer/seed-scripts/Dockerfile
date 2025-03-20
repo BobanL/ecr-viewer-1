@@ -10,9 +10,9 @@ COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the script into the container
-COPY create-seed-data-zip.py /code/create-seed-data-zip.py
+COPY create-seed-data.py /code/create-seed-data.py
 COPY ./baseECR /code/baseECR
 ENV PYTHONUNBUFFERED=1
 
 # Command to run the script
-CMD ["python", "./create-seed-data-zip.py"]
+CMD ["python", "./create-seed-data.py"]
