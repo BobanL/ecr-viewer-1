@@ -68,8 +68,12 @@ def _process_files():
     print(f"Sending {len(requests)} ZIP files...")
 
     # Send requests asynchronously
+    n = 0
     failed = []
+    num_requests = len(requests)
     for index, response in enumerate(grequests.imap(requests, size=8)):
+        n += 1
+        print(f"Received response {n} of {num_requests}")
         folder_path = folder_paths[index]
 
         if response is None:
@@ -82,7 +86,10 @@ def _process_files():
         else:
             print(f"✅ Successfully uploaded {folder_path}")
 
-    print(f"Processing complete. {len(failed)} failures: {failed}")
+
+    print(
+        f"Conversion complete: {n} records attempted and {len(failed)} failed : {failed}"
+    )
     if failed:
         exit(1)
 
