@@ -58,7 +58,7 @@ def _process_files():
 
             zip_buffer = zip_folder(folder_path)
 
-            files = [('upload_file', (f"{folder}.zip", zip_buffer, "application/zip"))]
+            files = [("upload_file", (f"{folder}.zip", zip_buffer, "application/zip"))]
             print(files)
             request = grequests.post(UPLOAD_URL, files=files)
 
@@ -76,14 +76,19 @@ def _process_files():
         folder_path = folder_paths[index]
         if response is None:
             failed.append(folder_path)
-            print(f"Received response {n} of {num_requests} ❌ Failed to upload {folder_path}: No response received")
+            print(
+                f"Received response {n} of {num_requests} ❌ Failed to upload {folder_path}: No response received"
+            )
             continue
         if response.status_code != 200:
             failed.append(folder_path)
-            print(f"Received response {n} of {num_requests} ❌ Failed to upload {folder_path}. Status: {response.status_code}")
+            print(
+                f"Received response {n} of {num_requests} ❌ Failed to upload {folder_path}. Status: {response.status_code}"
+            )
         else:
-            print(f"Received response {n} of {num_requests} ✅ Successfully uploaded {folder_path}")
-
+            print(
+                f"Received response {n} of {num_requests} ✅ Successfully uploaded {folder_path}"
+            )
 
     print(
         f"Conversion complete: {n} records attempted and {len(failed)} failed : {failed}"
