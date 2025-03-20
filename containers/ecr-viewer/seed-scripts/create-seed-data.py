@@ -1,10 +1,13 @@
 import argparse
 import json
 import os
+import io
+import zipfile
+import requests
 
 import grequests
 
-URL = "http://orchestration-service:8080"
+UPLOAD_URL = "http://host.docker.internal:3000/ecr-viewer"
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -48,8 +51,8 @@ def _process_files(args):
     ):
         configName = "non-integrated-core.json"
 
-    def _process_eicrs(subfolder, folder, folder_path, payload):
-        r = grequests.post(f"{URL}/process-message", json=payload)
+    def _process_eicrs(subfolder, folder, folder_path):
+        r = grequests.post(f"{URL}/api/process-zip")
         requests.append(r)
         folder_paths.append(folder_path)
 
