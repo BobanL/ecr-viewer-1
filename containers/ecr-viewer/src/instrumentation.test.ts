@@ -19,14 +19,16 @@ describe("register and and setupConfigurationVariables", () => {
   afterAll(() => {
     process.env = originalEnv;
   });
-
+  
   it("should set AWS_INTEGRATED configuration variables", async () => {
     process.env.CONFIG_NAME = "AWS_INTEGRATED";
+    const jestSpy = jest.spyOn(console, 'warn').mockImplementation();
     await register();
 
     expect(process.env.NBS_AUTH).toBe("true");
     expect(process.env.NON_INTEGRATED_VIEWER).toBe("false");
     expect(process.env.SOURCE).toBe("s3");
+    expect(jestSpy).toHaveBeenCalled();
     expect(makeEnvPublic).toHaveBeenCalledExactlyOnceWith([
       "NON_INTEGRATED_VIEWER",
     ]);
