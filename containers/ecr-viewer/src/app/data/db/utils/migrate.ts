@@ -128,11 +128,21 @@ async function runMigration(
 }
 
 function getSchema() {
-  if (process.env.METADATA_DATABASE_SCHEMA) { return process.env.METADATA_DATABASE_SCHEMA; }
-  if (["AWS_PG_NON_INTEGRATED", "AZURE_PG_NON_INTEGRATED"].includes(process.env.CONFIG_NAME || "")) {
+  if (process.env.METADATA_DATABASE_SCHEMA) {
+    return process.env.METADATA_DATABASE_SCHEMA;
+  }
+  if (
+    ["AWS_PG_NON_INTEGRATED", "AZURE_PG_NON_INTEGRATED"].includes(
+      process.env.CONFIG_NAME || "",
+    )
+  ) {
     return "core";
   }
-  if (["AWS_SQLSERVER_NON_INTEGRATED", "AZURE_SQLSERVER_NON_INTEGRATED"].includes(process.env.CONFIG_NAME || "")) {
+  if (
+    ["AWS_SQLSERVER_NON_INTEGRATED", "AZURE_SQLSERVER_NON_INTEGRATED"].includes(
+      process.env.CONFIG_NAME || "",
+    )
+  ) {
     return "extended";
   }
   return undefined;
@@ -141,9 +151,7 @@ function getSchema() {
 async function main() {
   const schema = getSchema();
   if (!schema || (schema !== "core" && schema !== "extended")) {
-    console.error(
-      'No database supported by config. Skipping migration.',
-    );
+    console.error("No database supported by config. Skipping migration.");
     return;
   }
 
