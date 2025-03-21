@@ -152,9 +152,7 @@ function getSchema() {
 async function main() {
   const schema = getSchema();
   if (!schema || (schema !== "core" && schema !== "extended")) {
-    console.warn(
-      'No database supported by config. Skipping migration.',
-    );
+    console.warn("No database supported by config. Skipping migration.");
     return;
   }
 

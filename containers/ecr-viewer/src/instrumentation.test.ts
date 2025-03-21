@@ -19,10 +19,10 @@ describe("register and and setupConfigurationVariables", () => {
   afterAll(() => {
     process.env = originalEnv;
   });
-  
+
   it("should set AWS_INTEGRATED configuration variables", async () => {
     process.env.CONFIG_NAME = "AWS_INTEGRATED";
-    const jestSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const jestSpy = jest.spyOn(console, "warn").mockImplementation();
     await register();
 
     expect(process.env.NBS_AUTH).toBe("true");
