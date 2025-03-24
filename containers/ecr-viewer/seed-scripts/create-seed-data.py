@@ -78,17 +78,17 @@ def _process_files():
         if response is None:
             failed.append(folder_path)
             print(
-                f"Received response {n} of {num_requests} ❌ Failed to upload {folder_path}: No response received"
+                f"Received response {n} of {num_requests} - Failed to upload {folder_path}: No response received"
             )
             continue
         if response.status_code != 200:
             failed.append(folder_path)
             print(
-                f"Received response {n} of {num_requests} ❌ Failed to upload {folder_path}. Status: {response.status_code}"
+                f"Received response {n} of {num_requests} - Failed to upload {folder_path}. Status: {response.status_code}"
             )
         else:
             print(
-                f"Received response {n} of {num_requests} ✅ Successfully uploaded {folder_path}"
+                f"Received response {n} of {num_requests} - Successfully uploaded {folder_path}"
             )
 
     print(
