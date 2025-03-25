@@ -29,29 +29,29 @@ namespace NodeJS {
     /**
      * AWS access key ID for accessing AWS services
      */
-    AWS_ACCESS_KEY_ID: string;
+    AWS_ACCESS_KEY_ID?: string;
     /**
      * Custom endpoint URL for AWS services. This is used for local development only.
      * @ignore
      */
-    AWS_CUSTOM_ENDPOINT: string;
+    AWS_CUSTOM_ENDPOINT?: string;
     /**
      * AWS region where resources are located
      */
-    AWS_REGION: string;
+    AWS_REGION?: string;
     /**
      * AWS secret access key for accessing AWS services
      */
-    AWS_SECRET_ACCESS_KEY: string;
+    AWS_SECRET_ACCESS_KEY?: string;
     /**
      * Azure Blob Storage container name where eCR documents are stored
      * @deprecated Use ECR_BUCKET_NAME instead
      */
-    AZURE_CONTAINER_NAME: string;
+    AZURE_CONTAINER_NAME?: string;
     /**
      * Connection string for Azure Storage account
      */
-    AZURE_STORAGE_CONNECTION_STRING: string;
+    AZURE_STORAGE_CONNECTION_STRING?: string;
     /**
      * Base path for the eCR Viewer
      * @example /ecr-viewer
@@ -66,7 +66,10 @@ namespace NodeJS {
       | "AWS_SQLSERVER_NON_INTEGRATED"
       | "AZURE_INTEGRATED"
       | "AZURE_PG_NON_INTEGRATED"
-      | "AZURE_SQLSERVER_NON_INTEGRATED";
+      | "AZURE_SQLSERVER_NON_INTEGRATED"
+      | "GCP_INTEGRATED"
+      | "GCP_PG_NON_INTEGRATED"
+      | "GCP_SQLSERVER_NON_INTEGRATED";
     /**
      * Type of metadata database being used. This value is set by CONFIG_NAME.
      * @ignore
@@ -84,8 +87,9 @@ namespace NodeJS {
      * Name of the Container storage where eCR documents are stored.
      */
     ECR_BUCKET_NAME: string;
-    GITHUB_ID: string;
-    GITHUB_SECRET: string;
+    GCP_CREDENTIALS?: string;
+    GCP_PROJECT_ID?: string;
+    GCP_API_ENDPOINT?: string;
     /**
      * Database schema to use for metadata storage. Core has a small subset of Extended. This value is set by CONFIG_NAME.
      * @ignore
@@ -131,7 +135,7 @@ namespace NodeJS {
      * Determines the cloud storage provider used for eCR document storage. This value is set by CONFIG_NAME.
      * @ignore
      */
-    SOURCE: "s3" | "azure";
+    SOURCE: "s3" | "azure" | "gcp";
     /**
      * Hostname for SQL Server database.
      * @deprecated use DATABASE_URL
