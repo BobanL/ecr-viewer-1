@@ -78,7 +78,7 @@ namespace NodeJS {
     /**
      * Connection URL for the database.
      */
-    DATABASE_URL: string;
+    DATABASE_URL?: string;
     /**
      * Cipher key for database encryption if different then the default.
      */
@@ -140,16 +140,16 @@ namespace NodeJS {
      * Hostname for SQL Server database.
      * @deprecated use DATABASE_URL
      */
-    SQL_SERVER_HOST: string;
+    SQL_SERVER_HOST?: string;
     /**
      * Password for SQL Server authentication.
      * @deprecated use DATABASE_URL
      */
-    SQL_SERVER_PASSWORD: string;
+    SQL_SERVER_PASSWORD?: string;
     /**
      * Username for SQL Server authentication.
      * @deprecated use DATABASE_URL
      */
-    SQL_SERVER_USER: string;
+    SQL_SERVER_USER?: string;
   }
 }
