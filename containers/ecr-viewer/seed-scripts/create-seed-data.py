@@ -42,7 +42,6 @@ def _process_files():
 
     requests = []
     folder_paths = []
-
     for subfolder in subfolders:
         subfolder_path = os.path.join(BASEDIR, "baseECR", subfolder)
 
