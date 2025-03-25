@@ -2,12 +2,12 @@
 namespace NodeJS {
   interface ProcessEnv {
     /**
-     * The version of the eCR Viewer. This value is set at build time
+     * The version of the eCR Viewer. This value is set at build time.
      * @ignore
      */
     readonly APP_VERSION: string;
     /**
-     * The application/client id used to idenitfy the client
+     * The application/client id used to idenitfy the client.
      */
     AUTH_CLIENT_ID?: string;
     /**
@@ -23,11 +23,11 @@ namespace NodeJS {
      */
     AUTH_ISSUER?: string;
     /**
-     * The authentication provider when running NON_INTEGRATED. Either keycloak or ad.
+     * The authentication provider used for logging in. Either keycloak or ad.
      */
     AUTH_PROVIDER?: "keycloak" | "ad";
     /**
-     * AWS access key ID for accessing AWS services
+     * AWS access key ID for accessing AWS services.
      */
     AWS_ACCESS_KEY_ID?: string;
     /**
@@ -36,24 +36,24 @@ namespace NodeJS {
      */
     AWS_CUSTOM_ENDPOINT?: string;
     /**
-     * AWS region where resources are located
+     * AWS region where resources are located.
      */
     AWS_REGION?: string;
     /**
-     * AWS secret access key for accessing AWS services
+     * AWS secret access key for accessing AWS services.
      */
     AWS_SECRET_ACCESS_KEY?: string;
     /**
-     * Azure Blob Storage container name where eCR documents are stored
+     * Azure Blob Storage container name where eCR documents are stored.
      * @deprecated Use ECR_BUCKET_NAME instead
      */
     AZURE_CONTAINER_NAME?: string;
     /**
-     * Connection string for Azure Storage account
+     * Connection string for Azure Storage account.
      */
     AZURE_STORAGE_CONNECTION_STRING?: string;
     /**
-     * Base path for the eCR Viewer
+     * Base path for the eCR Viewer.
      * @example /ecr-viewer
      */
     BASE_PATH: string;
@@ -128,7 +128,7 @@ namespace NodeJS {
      */
     NON_INTEGRATED_VIEWER: "true" | "false";
     /**
-     * The full URL that the orchestration URL is available at
+     * The full URL that the orchestration URL is available at.
      */
     ORCHESTRATION_URL: string;
     /**
