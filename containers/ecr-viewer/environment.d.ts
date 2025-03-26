@@ -2,20 +2,25 @@
 namespace NodeJS {
   interface ProcessEnv {
     /**
-     * The version of the eCR Viewer. This value is set at build time.
      * @ignore
+     * @description The version of the eCR Viewer. This value is set at build time.
      */
     readonly APP_VERSION: string;
     /**
-     * The application/client id used to idenitfy the client.
+     * @category Authentication - Standalone
+     * @categoryDescription Authentication - Standalone
+     * These functions are available for...
+     * @description The application/client id used to idenitfy the client.
      */
     AUTH_CLIENT_ID?: string;
     /**
-     * The client secret that comes from the authentication provider.
+     * @category Authentication - Standalone
+     * @description The client secret that comes from the authentication provider.
      */
     AUTH_CLIENT_SECRET?: string;
     /**
-     * Additional information used during authentication process. For Azure AD, this will be the 'Tenant Id'. For Keycloak, this will be the url issuer including the realm.
+     * @category Authentication - Standalone
+     * @description Additional information used during authentication process. For Azure AD, this will be the 'Tenant Id'. For Keycloak, this will be the url issuer including the realm.
      * @example Keycloak
      * https://my-keycloak-domain.com/realms/My_Realm
      * @example Azure
@@ -23,42 +28,51 @@ namespace NodeJS {
      */
     AUTH_ISSUER?: string;
     /**
-     * The authentication provider used for logging in. Either keycloak or ad.
+     * @category Authentication - Standalone
+     * @description The authentication provider used for logging in. Either keycloak or ad.
      */
     AUTH_PROVIDER?: "keycloak" | "ad";
     /**
-     * AWS access key ID for accessing AWS services.
+     * @category eCR Storage - AWS
+     * @description AWS access key ID for accessing AWS services.
      */
     AWS_ACCESS_KEY_ID?: string;
     /**
-     * Custom endpoint URL for AWS services. This is used for local development only.
      * @ignore
+     * @category eCR Storage - AWS
+     * @description Custom endpoint URL for AWS services. This is used for local development only.
      */
     AWS_CUSTOM_ENDPOINT?: string;
     /**
-     * AWS region where resources are located.
+     * @category eCR Storage - AWS
+     * @description AWS region where resources are located.
      */
     AWS_REGION?: string;
     /**
-     * AWS secret access key for accessing AWS services.
+     * @category eCR Storage - AWS
+     * @description AWS secret access key for accessing AWS services.
      */
     AWS_SECRET_ACCESS_KEY?: string;
     /**
-     * Azure Blob Storage container name where eCR documents are stored.
-     * @deprecated Use ECR_BUCKET_NAME instead
+     * @category eCR Storage - AZURE
+     * @description Azure Blob Storage container name where eCR documents are stored.
+     * @deprecated Since v3.1.0 - Use {@link ECR_BUCKET_NAME}
      */
     AZURE_CONTAINER_NAME?: string;
     /**
-     * Connection string for Azure Storage account.
+     * @category eCR Storage - AZURE
+     * @description Connection string for Azure Storage account.
      */
     AZURE_STORAGE_CONNECTION_STRING?: string;
     /**
-     * Base path for the eCR Viewer.
+     * @category Required
+     * @description Base path for the eCR Viewer.
      * @example /ecr-viewer
      */
     BASE_PATH: string;
     /**
-     * Configuration name that determines the type of authentication used, metadata database, and eCR document storage type.
+     * @category Required
+     * @description Configuration name that determines the type of authentication used, metadata database, and eCR document storage type.
      */
     CONFIG_NAME:
       | "AWS_INTEGRATED"
@@ -71,84 +85,117 @@ namespace NodeJS {
       | "GCP_PG_NON_INTEGRATED"
       | "GCP_SQLSERVER_NON_INTEGRATED";
     /**
-     * Type of metadata database being used. This value is set by CONFIG_NAME.
      * @ignore
+     * @category Override
+     * @description Type of metadata database being used. This value is set by CONFIG_NAME.
      */
     DATABASE_TYPE: string;
     /**
-     * Connection URL for the database.
+     * @category eCR Library Metadata
+     * @description Connection URL for the database.
      */
     DATABASE_URL?: string;
     /**
-     * Cipher key for database encryption if different then the default.
+     * @category eCR Library Metadata
+     * @description Cipher key for database encryption if different then the default.
      */
     DB_CIPHER?: string;
     /**
-     * Name of the Container storage where eCR documents are stored.
+     * @category Required
+     * @description Name of the Container storage where eCR documents are stored.
      */
     ECR_BUCKET_NAME: string;
+    /**
+     * @category eCR Storage - GCP
+     * @description Google Cloud service account credentials JSON (stringified) for GCP deployments.
+     * Only required if not using Application Default Credentials.
+     */
     GCP_CREDENTIALS?: string;
+    /**
+     * @category eCR Storage - GCP
+     * @description Google Cloud project ID where resources are located.
+     * Only required if not using Application Default Credentials.
+     */
     GCP_PROJECT_ID?: string;
+    /**
+     * @ignore
+     * @category eCR Storage - GCP
+     * @description Custom endpoint URL for GCP services. This is used for local development only.
+     */
     GCP_API_ENDPOINT?: string;
     /**
-     * Database schema to use for metadata storage. Core has a small subset of Extended. This value is set by CONFIG_NAME.
      * @ignore
+     * @category Override
+     * @description Database schema to use for metadata storage. Core has a small subset of Extended. This value is set by CONFIG_NAME.
      */
     METADATA_DATABASE_SCHEMA?: "core" | "extended";
     /**
-     * Database type for metadata storage. This value is set by CONFIG_NAME.
      * @ignore
+     * @category Override
+     * @description Database type for metadata storage. This value is set by CONFIG_NAME.
      */
     METADATA_DATABASE_TYPE?: "postgres" | "sqlserver";
     /**
-     * Flag indicating whether authentication via NBS enabled. This value is set by CONFIG_NAME.
      * @ignore
+     * @category Authentication - NBS
+     * @category Override
+     * @description Flag indicating whether authentication via NBS enabled. This value is set by CONFIG_NAME.
      */
     NBS_AUTH: "true" | "false";
     /**
-     * Public key for NBS authentication.
+     * @category Authentication - NBS
+     * @description Public key for NBS authentication.
      */
     NBS_PUB_KEY: string;
     /**
-     * Flag indicating whether this is a non-integrated viewer instance (client-side accessible). This value is set by CONFIG_NAME.
+     * @ignore
+     * @category Override
+     * @description Flag indicating whether this is a non-integrated viewer instance (client-side accessible). This value is set by CONFIG_NAME.
      */
     NEXT_PUBLIC_NON_INTEGRATED_VIEWER: "true" | "false";
     /**
-     * Next.js runtime environment.
      * @ignore
+     * @description Next.js runtime environment.
      */
-    NEXT_RUNTIME: string;
+    readonly NEXT_RUNTIME: string;
     /**
-     * Secret key used for NextAuth.js sessions.
+     * @category Authentication - Standalone
+     * @description Secret key used for NextAuth.js sessions.
      */
     NEXTAUTH_SECRET: string;
     /**
-     * Flag indicating whether this is a non-integrated viewer instance. This value is set by CONFIG_NAME.
      * @ignore
+     * @category Override
+     * @description Flag indicating whether this is a non-integrated viewer instance. This value is set by CONFIG_NAME.
      */
     NON_INTEGRATED_VIEWER: "true" | "false";
     /**
-     * The full URL that the orchestration URL is available at.
+     * @category Required
+     * @description The full URL that the orchestration URL is available at.
      */
     ORCHESTRATION_URL: string;
     /**
-     * Determines the cloud storage provider used for eCR document storage. This value is set by CONFIG_NAME.
      * @ignore
+     * @category Override
+     * @description Determines the cloud storage provider used for eCR document storage. This value is set by CONFIG_NAME.
      */
     SOURCE: "s3" | "azure" | "gcp";
     /**
-     * Hostname for SQL Server database.
-     * @deprecated use DATABASE_URL
+     * @category SQL Server
+     * @description Hostname for SQL Server database.
+     * @deprecated Since v3.1.0 - use {@link DATABASE_URL}
      */
     SQL_SERVER_HOST?: string;
     /**
-     * Password for SQL Server authentication.
-     * @deprecated use DATABASE_URL
+     * @category SQL Server
+     * @description Password for SQL Server authentication.
+     * @deprecated Since v3.1.0 - use {@link DATABASE_URL}
      */
     SQL_SERVER_PASSWORD?: string;
     /**
-     * Username for SQL Server authentication.
-     * @deprecated use DATABASE_URL
+     * @category SQL Server
+     * @description Username for SQL Server authentication.
+     * @deprecated Since v3.1.0 - use {@link DATABASE_URL}
      */
     SQL_SERVER_USER?: string;
   }
