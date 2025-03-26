@@ -3,11 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { getDb, dbSchema } from "@/app/api/services/database";
 
-import {
-  Kysely,
-  Migrator,
-  FileMigrationProvider,
-} from "kysely";
+import { Kysely, Migrator, FileMigrationProvider } from "kysely";
 
 // Empty interface used only in migrations
 interface Database {}
@@ -82,4 +78,4 @@ export async function main() {
 main().catch((err) => {
   console.error(err);
   process.exit(1);
-})
+});

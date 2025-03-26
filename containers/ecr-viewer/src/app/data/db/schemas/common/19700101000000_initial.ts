@@ -59,8 +59,14 @@ export async function up(db: Kysely<any>): Promise<void> {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable("ecr_viewer.ecr_rr_rule_summaries").ifExists().execute();
-  await db.schema.dropTable("ecr_viewer.ecr_rr_conditions").ifExists().execute();
+  await db.schema
+    .dropTable("ecr_viewer.ecr_rr_rule_summaries")
+    .ifExists()
+    .execute();
+  await db.schema
+    .dropTable("ecr_viewer.ecr_rr_conditions")
+    .ifExists()
+    .execute();
   await db.schema.dropTable("ecr_viewer.ecr_data").ifExists().execute();
   await db.schema.dropSchema("ecr_viewer").ifExists().execute();
 }
