@@ -1,5 +1,28 @@
+/**
+ * @document guide.md
+ */
 /* eslint-disable unused-imports/no-unused-vars */
 namespace NodeJS {
+  /**
+   * @categoryDescription Authentication - Standalone
+   * These variables are used to configure authentication for the eCR Library & Viewer.
+   * They are all required when running in `NON_INTEGRATED` or `DUAL`.
+   * @categoryDescription Authentication - NBS
+   * These variables are used to configure authentication for the eCR Viewer.
+   * They are all required when running in `INTEGRATED` or `DUAL`.
+   * @categoryDescription Base Required
+   * These variables are required for the app to run properly. These are required for all deployments.
+   * @categoryDescription SQL Server
+   * These variables are deprecated. Please use eCR Library Metadata instead.
+   * @categoryDescription eCR Library Metadata
+   * These variables are used to configure the metadata database.
+   * @categoryDescription eCR Storage - AWS
+   * These variables are used to configure the storage of FHIR data.
+   * @categoryDescription eCR Storage - AZURE
+   * These variables are used to configure the storage of FHIR data.
+   * @categoryDescription eCR Storage - GCP
+   * These variables are used to configure the storage of FHIR data.
+   */
   interface ProcessEnv {
     /**
      * @ignore
@@ -8,8 +31,6 @@ namespace NodeJS {
     readonly APP_VERSION: string;
     /**
      * @category Authentication - Standalone
-     * @categoryDescription Authentication - Standalone
-     * These functions are available for...
      * @description The application/client id used to idenitfy the client.
      */
     AUTH_CLIENT_ID?: string;
