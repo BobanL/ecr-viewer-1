@@ -86,13 +86,13 @@ namespace NodeJS {
      */
     AZURE_STORAGE_CONNECTION_STRING?: string;
     /**
-     * @category Required
+     * @category Base Required
      * @description Base path for the eCR Viewer.
      * @example /ecr-viewer
      */
     BASE_PATH: string;
     /**
-     * @category Required
+     * @category Base Required
      * @description Configuration name that determines the type of authentication used, metadata database, and eCR document storage type.
      */
     CONFIG_NAME:
@@ -122,7 +122,7 @@ namespace NodeJS {
      */
     DB_CIPHER?: string;
     /**
-     * @category Required
+     * @category Base Required
      * @description Name of the Container storage where eCR documents are stored.
      */
     ECR_BUCKET_NAME: string;
@@ -191,7 +191,7 @@ namespace NodeJS {
      */
     NON_INTEGRATED_VIEWER: "true" | "false";
     /**
-     * @category Required
+     * @category Base Required
      * @description The full URL that the orchestration URL is available at.
      */
     ORCHESTRATION_URL: string;
