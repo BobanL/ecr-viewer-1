@@ -2,20 +2,8 @@
  * @document guide.md
  */
 /* eslint-disable unused-imports/no-unused-vars */
-namespace NodeJS {
+namespace EnvironmentVariables {
   /**
-   * @categoryDescription Authentication - Standalone
-   * These variables are used to configure authentication for the eCR Library & Viewer.
-   * They are all required when running in `NON_INTEGRATED` or `DUAL`.
-   * @categoryDescription Authentication - NBS
-   * These variables are used to configure authentication for the eCR Viewer.
-   * They are all required when running in `INTEGRATED` or `DUAL`.
-   * @categoryDescription Base Required
-   * These variables are required for the app to run properly. These are required for all deployments.
-   * @categoryDescription SQL Server
-   * These variables are deprecated. Please use eCR Library Metadata instead.
-   * @categoryDescription eCR Library Metadata
-   * These variables are used to configure the metadata database.
    * @categoryDescription eCR Storage - AWS
    * These variables are used to configure the storage of FHIR data.
    * @categoryDescription eCR Storage - AZURE
@@ -23,36 +11,7 @@ namespace NodeJS {
    * @categoryDescription eCR Storage - GCP
    * These variables are used to configure the storage of FHIR data.
    */
-  interface ProcessEnv {
-    /**
-     * @ignore
-     * @description The version of the eCR Viewer. This value is set at build time.
-     */
-    readonly APP_VERSION: string;
-    /**
-     * @category Authentication - Standalone
-     * @description The application/client id used to idenitfy the client.
-     */
-    AUTH_CLIENT_ID?: string;
-    /**
-     * @category Authentication - Standalone
-     * @description The client secret that comes from the authentication provider.
-     */
-    AUTH_CLIENT_SECRET?: string;
-    /**
-     * @category Authentication - Standalone
-     * @description Additional information used during authentication process. For Azure AD, this will be the 'Tenant Id'. For Keycloak, this will be the url issuer including the realm.
-     * @example Keycloak
-     * https://my-keycloak-domain.com/realms/My_Realm
-     * @example Azure
-     * 4a62fd3e-be14-443f-b51d-a9facca4a0eb
-     */
-    AUTH_ISSUER?: string;
-    /**
-     * @category Authentication - Standalone
-     * @description The authentication provider used for logging in. Either keycloak or ad.
-     */
-    AUTH_PROVIDER?: "keycloak" | "ad";
+  interface EcrStorage {
     /**
      * @category eCR Storage - AWS
      * @description AWS access key ID for accessing AWS services.
@@ -86,6 +45,124 @@ namespace NodeJS {
      */
     AZURE_STORAGE_CONNECTION_STRING?: string;
     /**
+     * @category eCR Storage - GCP
+     * @description Google Cloud service account credentials JSON (stringified) for GCP deployments.
+     * Only required if not using Application Default Credentials.
+     */
+    GCP_CREDENTIALS?: string;
+    /**
+     * @category eCR Storage - GCP
+     * @description Google Cloud project ID where resources are located.
+     * Only required if not using Application Default Credentials.
+     */
+    GCP_PROJECT_ID?: string;
+    /**
+     * @ignore
+     * @category eCR Storage - GCP
+     * @description Custom endpoint URL for GCP services. This is used for local development only.
+     */
+    GCP_API_ENDPOINT?: string;
+  }
+
+  /**
+   * @ignore
+   */
+  interface InternalUse {
+    /**
+     * @ignore
+     * @description The version of the eCR Viewer. This value is set at build time.
+     */
+    readonly APP_VERSION: string;
+    /**
+     * @ignore
+     * @description Next.js runtime environment.
+     */
+    readonly NEXT_RUNTIME: string;
+    /**
+     * @ignore
+     * @description Flag indicating whether this is a non-integrated viewer instance. This value is set by CONFIG_NAME.
+     */
+    NON_INTEGRATED_VIEWER: "true" | "false";
+    /**
+     * @ignore
+     * @description Determines the cloud storage provider used for eCR document storage. This value is set by CONFIG_NAME.
+     */
+    SOURCE: "s3" | "azure" | "gcp";
+    /**
+     * @ignore
+     * @description Flag indicating whether this is a non-integrated viewer instance (client-side accessible). This value is set by CONFIG_NAME.
+     */
+    NEXT_PUBLIC_NON_INTEGRATED_VIEWER: "true" | "false";
+    /**
+     * @ignore
+     * @description Database schema to use for metadata storage. Core has a small subset of Extended. This value is set by CONFIG_NAME.
+     */
+    METADATA_DATABASE_SCHEMA?: "core" | "extended";
+    /**
+     * @ignore
+     * @description Database type for metadata storage. This value is set by CONFIG_NAME.
+     */
+    METADATA_DATABASE_TYPE?: "postgres" | "sqlserver";
+  }
+
+  /**
+   * @categoryDescription Authentication - Standalone
+   * These variables are used to configure authentication for the eCR Library & Viewer.
+   * They are all required when running in `NON_INTEGRATED` or `DUAL`.
+   * @categoryDescription Authentication - NBS
+   * These variables are used to configure authentication for the eCR Viewer.
+   * They are all required when running in `INTEGRATED` or `DUAL`.
+   */
+  interface Authentication {
+    /**
+     * @category Authentication - Standalone
+     * @description Secret key used for NextAuth.js sessions.
+     */
+    NEXTAUTH_SECRET: string;
+    /**
+     * @category Authentication - NBS
+     * @description Public key for NBS authentication.
+     */
+    NBS_PUB_KEY: string;
+    /**
+     * @ignore
+     * @category Authentication - NBS
+     * @category Override
+     * @description Flag indicating whether authentication via NBS enabled. This value is set by CONFIG_NAME.
+     */
+    NBS_AUTH: "true" | "false";
+    /**
+     * @category Authentication - Standalone
+     * @description The application/client id used to idenitfy the client.
+     */
+    AUTH_CLIENT_ID?: string;
+    /**
+     * @category Authentication - Standalone
+     * @description The client secret that comes from the authentication provider.
+     */
+    AUTH_CLIENT_SECRET?: string;
+    /**
+     * @category Authentication - Standalone
+     * @description Additional information used during authentication process. For Azure AD, this will be the 'Tenant Id'. For Keycloak, this will be the url issuer including the realm.
+     * @example Keycloak
+     * https://my-keycloak-domain.com/realms/My_Realm
+     * @example Azure
+     * 4a62fd3e-be14-443f-b51d-a9facca4a0eb
+     */
+    AUTH_ISSUER?: string;
+    /**
+     * @category Authentication - Standalone
+     * @description The authentication provider used for logging in. Either keycloak or ad.
+     */
+    AUTH_PROVIDER?: "keycloak" | "ad";
+  }
+
+  /**
+   * @categoryDescription Base Required
+   * These variables are required for the app to run properly. These are required for all deployments.
+   */
+  interface BaseRequired {
+    /**
      * @category Base Required
      * @description Base path for the eCR Viewer.
      * @example /ecr-viewer
@@ -106,6 +183,25 @@ namespace NodeJS {
       | "GCP_PG_NON_INTEGRATED"
       | "GCP_SQLSERVER_NON_INTEGRATED";
     /**
+     * @category Base Required
+     * @description Name of the Container storage where eCR documents are stored.
+     */
+    ECR_BUCKET_NAME: string;
+    /**
+     * @category Base Required
+     * @description The full URL that the orchestration URL is available at.
+     */
+    ORCHESTRATION_URL: string;
+  }
+
+  /**
+   * @categoryDescription SQL Server
+   * These variables are deprecated. Please use eCR Library Metadata instead. {@link eCR Library Metadata} {@link AUTH_CLIENT_ID}
+   * @categoryDescription eCR Library Metadata
+   * These variables are used to configure the metadata database.
+   */
+  interface Metadata {
+    /**
      * @ignore
      * @category Override
      * @description Type of metadata database being used. This value is set by CONFIG_NAME.
@@ -121,86 +217,6 @@ namespace NodeJS {
      * @description Cipher key for database encryption if different then the default.
      */
     DB_CIPHER?: string;
-    /**
-     * @category Base Required
-     * @description Name of the Container storage where eCR documents are stored.
-     */
-    ECR_BUCKET_NAME: string;
-    /**
-     * @category eCR Storage - GCP
-     * @description Google Cloud service account credentials JSON (stringified) for GCP deployments.
-     * Only required if not using Application Default Credentials.
-     */
-    GCP_CREDENTIALS?: string;
-    /**
-     * @category eCR Storage - GCP
-     * @description Google Cloud project ID where resources are located.
-     * Only required if not using Application Default Credentials.
-     */
-    GCP_PROJECT_ID?: string;
-    /**
-     * @ignore
-     * @category eCR Storage - GCP
-     * @description Custom endpoint URL for GCP services. This is used for local development only.
-     */
-    GCP_API_ENDPOINT?: string;
-    /**
-     * @ignore
-     * @category Override
-     * @description Database schema to use for metadata storage. Core has a small subset of Extended. This value is set by CONFIG_NAME.
-     */
-    METADATA_DATABASE_SCHEMA?: "core" | "extended";
-    /**
-     * @ignore
-     * @category Override
-     * @description Database type for metadata storage. This value is set by CONFIG_NAME.
-     */
-    METADATA_DATABASE_TYPE?: "postgres" | "sqlserver";
-    /**
-     * @ignore
-     * @category Authentication - NBS
-     * @category Override
-     * @description Flag indicating whether authentication via NBS enabled. This value is set by CONFIG_NAME.
-     */
-    NBS_AUTH: "true" | "false";
-    /**
-     * @category Authentication - NBS
-     * @description Public key for NBS authentication.
-     */
-    NBS_PUB_KEY: string;
-    /**
-     * @ignore
-     * @category Override
-     * @description Flag indicating whether this is a non-integrated viewer instance (client-side accessible). This value is set by CONFIG_NAME.
-     */
-    NEXT_PUBLIC_NON_INTEGRATED_VIEWER: "true" | "false";
-    /**
-     * @ignore
-     * @description Next.js runtime environment.
-     */
-    readonly NEXT_RUNTIME: string;
-    /**
-     * @category Authentication - Standalone
-     * @description Secret key used for NextAuth.js sessions.
-     */
-    NEXTAUTH_SECRET: string;
-    /**
-     * @ignore
-     * @category Override
-     * @description Flag indicating whether this is a non-integrated viewer instance. This value is set by CONFIG_NAME.
-     */
-    NON_INTEGRATED_VIEWER: "true" | "false";
-    /**
-     * @category Base Required
-     * @description The full URL that the orchestration URL is available at.
-     */
-    ORCHESTRATION_URL: string;
-    /**
-     * @ignore
-     * @category Override
-     * @description Determines the cloud storage provider used for eCR document storage. This value is set by CONFIG_NAME.
-     */
-    SOURCE: "s3" | "azure" | "gcp";
     /**
      * @category SQL Server
      * @description Hostname for SQL Server database.
@@ -220,4 +236,17 @@ namespace NodeJS {
      */
     SQL_SERVER_USER?: string;
   }
+}
+
+/**
+ * @ignore
+ */
+/* eslint-disable unused-imports/no-unused-vars */
+namespace NodeJS {
+  interface ProcessEnv
+    extends EnvironmentVariables.BaseRequired,
+      EnvironmentVariables.EcrStorage,
+      EnvironmentVariables.Authentication,
+      EnvironmentVariables.Metadata,
+      EnvironmentVariables.InternalUse {}
 }
