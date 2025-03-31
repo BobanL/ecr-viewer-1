@@ -177,53 +177,37 @@ namespace EnvironmentVariables {
       | "AWS_INTEGRATED"
       | "AWS_PG_NON_INTEGRATED"
       | "AWS_SQLSERVER_NON_INTEGRATED"
+      | "AWS_PG_DUAL"
+      | "AWS_SQLSERVER_DUAL"
       | "AZURE_INTEGRATED"
       | "AZURE_PG_NON_INTEGRATED"
       | "AZURE_SQLSERVER_NON_INTEGRATED"
+      | "AZURE_PG_DUAL"
+      | "AZURE_SQLSERVER_DUAL"
       | "GCP_INTEGRATED"
       | "GCP_PG_NON_INTEGRATED"
       | "GCP_SQLSERVER_NON_INTEGRATED";
-    //#endregion configList
-    /**
-     * @category Base Required
-     * @description Name of the Container storage where eCR documents are stored.
-     */
-    ECR_BUCKET_NAME: string;
-    /**
-     * @category Base Required
-     * @description The full URL that the orchestration URL is available at.
-     */
-    ORCHESTRATION_URL: string;
-  }
-
-  /**
-   * @categoryDescription SQL Server
-   * These variables are deprecated. Please use eCR Library Metadata instead. {@link DATABASE_URL}
-   * @categoryDescription eCR Library Metadata
-   * These variables are used to configure the metadata database.
-   */
-  interface Metadata {
-    /**
-     * @ignore
-     * @category Override
-     * @description Type of metadata database being used. This value is set by CONFIG_NAME.
-     */
     DATABASE_TYPE: string;
-    /**
-     * @category eCR Library Metadata
-     * @description Connection URL for the database.
-     */
     DATABASE_URL?: string;
     /**
      * @category eCR Library Metadata
      * @description Cipher key for database encryption if different then the default.
      */
     DB_CIPHER?: string;
-    /**
-     * @category SQL Server
-     * @description Hostname for SQL Server database.
-     * @deprecated Since v3.1.0 - use {@link DATABASE_URL}
-     */
+    ECR_BUCKET_NAME: string;
+    GCP_CREDENTIALS?: string;
+    GCP_PROJECT_ID?: string;
+    GCP_API_ENDPOINT?: string;
+    METADATA_DATABASE_SCHEMA?: "core" | "extended";
+    METADATA_DATABASE_TYPE?: "postgres" | "sqlserver";
+    NBS_AUTH: "true" | "false";
+    NBS_PUB_KEY: string;
+    NEXT_PUBLIC_NON_INTEGRATED_VIEWER: "true" | "false";
+    NEXT_RUNTIME: string;
+    NEXTAUTH_SECRET: string;
+    NON_INTEGRATED_VIEWER: "true" | "false";
+    ORCHESTRATION_URL: string;
+    SOURCE: "s3" | "azure" | "gcp";
     SQL_SERVER_HOST?: string;
     /**
      * @category SQL Server
