@@ -1,8 +1,5 @@
-/**
- * @document guide.md
- */
 /* eslint-disable unused-imports/no-unused-vars */
-namespace EnvironmentVariables {
+namespace NodeJS {
   /**
    * @categoryDescription eCR Storage - AWS
    * These variables are used to configure the storage of FHIR data.
@@ -10,89 +7,35 @@ namespace EnvironmentVariables {
    * These variables are used to configure the storage of FHIR data.
    * @categoryDescription eCR Storage - GCP
    * These variables are used to configure the storage of FHIR data.
+   * @categoryDescription Authentication - Standalone
+   * These variables are used to configure authentication for the eCR Library & Viewer.
+   * They are all required when running in `NON_INTEGRATED` or `DUAL`.
+   * @categoryDescription Authentication - NBS
+   * These variables are used to configure authentication for the eCR Viewer.
+   * They are all required when running in `INTEGRATED` or `DUAL`.
+   * @categoryDescription Base Required
+   * These variables are required for the app to run properly. These are required for all deployments.
+   * @categoryDescription SQL Server
+   * These variables are deprecated. Please use eCR Library Metadata instead. {@link DATABASE_URL}
+   * @categoryDescription eCR Library Metadata
+   * These variables are used to configure the metadata database.
    */
-  interface EcrStorage {
-    /**
-     * @category eCR Storage - AWS
-     * @description AWS access key ID for accessing AWS services.
-     */
-    AWS_ACCESS_KEY_ID?: string;
-    /**
-     * @ignore
-     * @category eCR Storage - AWS
-     * @description Custom endpoint URL for AWS services. This is used for local development only.
-     */
-    AWS_CUSTOM_ENDPOINT?: string;
-    /**
-     * @category eCR Storage - AWS
-     * @description AWS region where resources are located.
-     */
-    AWS_REGION?: string;
-    /**
-     * @category eCR Storage - AWS
-     * @description AWS secret access key for accessing AWS services.
-     */
-    AWS_SECRET_ACCESS_KEY?: string;
-    /**
-     * @category eCR Storage - AZURE
-     * @description Azure Blob Storage container name where eCR documents are stored.
-     * @deprecated Since v3.1.0 - Use {@link BaseRequired.ECR_BUCKET_NAME}
-     */
-    AZURE_CONTAINER_NAME?: string;
-    /**
-     * @category eCR Storage - AZURE
-     * @description Connection string for Azure Storage account. Required for Azure Blob Storage.
-     */
-    AZURE_STORAGE_CONNECTION_STRING?: string;
-    /**
-     * @category eCR Storage - GCP
-     * @description Google Cloud service account credentials JSON (stringified) for GCP deployments.
-     * Only required if not using Application Default Credentials.
-     */
-    GCP_CREDENTIALS?: string;
-    /**
-     * @category eCR Storage - GCP
-     * @description Google Cloud project ID where resources are located.
-     * Only required if not using Application Default Credentials.
-     */
-    GCP_PROJECT_ID?: string;
-    /**
-     * @ignore
-     * @category eCR Storage - GCP
-     * @description Custom endpoint URL for GCP services. This is used for local development only.
-     */
-    GCP_API_ENDPOINT?: string;
-  }
-
-  /**
-   * @ignore
-   */
-  interface InternalUse {
+  interface ProcessEnv {
     /**
      * @ignore
      * @description The version of the eCR Viewer. This value is set at build time.
      */
-    readonly APP_VERSION: string;
+    APP_VERSION: string;
     /**
      * @ignore
      * @description Next.js runtime environment.
      */
-    readonly NEXT_RUNTIME: string;
-    /**
-     * @ignore
-     * @description Flag indicating whether this is a non-integrated viewer instance. This value is set by CONFIG_NAME.
-     */
-    NON_INTEGRATED_VIEWER: "true" | "false";
+    NEXT_RUNTIME: string;
     /**
      * @ignore
      * @description Determines the cloud storage provider used for eCR document storage. This value is set by CONFIG_NAME.
      */
     SOURCE: "s3" | "azure" | "gcp";
-    /**
-     * @ignore
-     * @description Flag indicating whether this is a non-integrated viewer instance (client-side accessible). This value is set by CONFIG_NAME.
-     */
-    NEXT_PUBLIC_NON_INTEGRATED_VIEWER: "true" | "false";
     /**
      * @ignore
      * @description Database schema to use for metadata storage. Core has a small subset of Extended. This value is set by CONFIG_NAME.
@@ -103,34 +46,7 @@ namespace EnvironmentVariables {
      * @description Database type for metadata storage. This value is set by CONFIG_NAME.
      */
     METADATA_DATABASE_TYPE?: "postgres" | "sqlserver";
-  }
-
-  /**
-   * @categoryDescription Authentication - Standalone
-   * These variables are used to configure authentication for the eCR Library & Viewer.
-   * They are all required when running in `NON_INTEGRATED` or `DUAL`.
-   * @categoryDescription Authentication - NBS
-   * These variables are used to configure authentication for the eCR Viewer.
-   * They are all required when running in `INTEGRATED` or `DUAL`.
-   */
-  interface Authentication {
-    /**
-     * @category Authentication - Standalone
-     * @description Secret key used for NextAuth.js sessions.
-     */
-    NEXTAUTH_SECRET: string;
-    /**
-     * @category Authentication - NBS
-     * @description Public key for NBS authentication.
-     */
-    NBS_PUB_KEY: string;
-    /**
-     * @ignore
-     * @category Authentication - NBS
-     * @category Override
-     * @description Flag indicating whether authentication via NBS enabled. This value is set by CONFIG_NAME.
-     */
-    NBS_AUTH: "true" | "false";
+    //#region auth
     /**
      * @category Authentication - Standalone
      * @description The application/client id used to idenitfy the client.
@@ -155,13 +71,76 @@ namespace EnvironmentVariables {
      * @description The authentication provider used for logging in. Either keycloak or ad.
      */
     AUTH_PROVIDER?: "keycloak" | "ad";
-  }
-
-  /**
-   * @categoryDescription Base Required
-   * These variables are required for the app to run properly. These are required for all deployments.
-   */
-  interface BaseRequired {
+    /**
+     * @category Authentication - Standalone
+     * @description Secret key used for NextAuth.js sessions.
+     */
+    NEXTAUTH_SECRET: string;
+    //#endregion auth
+    //#region auth_nbs
+    /**
+     * @category Authentication - NBS
+     * @description Public key for NBS authentication.
+     */
+    NBS_PUB_KEY?: string;
+    //#endregion auth_nbs
+    //#region aws
+    /**
+     * @category eCR Storage - AWS
+     * @description AWS access key ID for accessing AWS services.
+     */
+    AWS_ACCESS_KEY_ID?: string;
+    /**
+     * @ignore
+     * @category eCR Storage - AWS
+     * @description Custom endpoint URL for AWS services. This is used for local development only.
+     */
+    AWS_CUSTOM_ENDPOINT?: string;
+    /**
+     * @category eCR Storage - AWS
+     * @description AWS region where resources are located.
+     */
+    AWS_REGION?: string;
+    /**
+     * @category eCR Storage - AWS
+     * @description AWS secret access key for accessing AWS services.
+     */
+    AWS_SECRET_ACCESS_KEY?: string;
+    //#endregion aws
+    //#region azure
+    /**
+     * @category eCR Storage - AZURE
+     * @description Azure Blob Storage container name where eCR documents are stored.
+     * @deprecated Since v3.1.0 - Use {@link BaseRequired.ECR_BUCKET_NAME}
+     */
+    AZURE_CONTAINER_NAME?: string;
+    /**
+     * @category eCR Storage - AZURE
+     * @description Connection string for Azure Storage account. Required for Azure Blob Storage.
+     */
+    AZURE_STORAGE_CONNECTION_STRING?: string;
+    //#endregion azure
+    //#region gcp
+    /**
+     * @category eCR Storage - GCP
+     * @description Google Cloud service account credentials JSON (stringified) for GCP deployments.
+     * Only required if not using Application Default Credentials.
+     */
+    GCP_CREDENTIALS?: string;
+    /**
+     * @category eCR Storage - GCP
+     * @description Google Cloud project ID where resources are located.
+     * Only required if not using Application Default Credentials.
+     */
+    GCP_PROJECT_ID?: string;
+    /**
+     * @ignore
+     * @category eCR Storage - GCP
+     * @description Custom endpoint URL for GCP services. This is used for local development only.
+     */
+    GCP_API_ENDPOINT?: string;
+    //#endregion gcp
+    //#region required
     /**
      * @category Base Required
      * @description Base path for the eCR Viewer.
@@ -172,7 +151,6 @@ namespace EnvironmentVariables {
      * @category Base Required
      * @description Configuration name that determines the type of authentication used, metadata database, and eCR document storage type.
      */
-    //#region configList
     CONFIG_NAME:
       | "AWS_INTEGRATED"
       | "AWS_PG_NON_INTEGRATED"
@@ -186,28 +164,36 @@ namespace EnvironmentVariables {
       | "AZURE_SQLSERVER_DUAL"
       | "GCP_INTEGRATED"
       | "GCP_PG_NON_INTEGRATED"
-      | "GCP_SQLSERVER_NON_INTEGRATED";
-    DATABASE_TYPE: string;
+      | "GCP_SQLSERVER_NON_INTEGRATED"
+      | "GCP_PG_DUAL"
+      | "GCP_SQLSERVER_DUAL";
+    /**
+     * @category Base Required
+     * @description Name of the Container storage where eCR documents are stored.
+     */
+    ECR_BUCKET_NAME: string;
+    /**
+     * @category Base Required
+     * @description The full URL that the orchestration URL is available at.
+     */
+    ORCHESTRATION_URL: string;
+    //#endregion required
+    //#region metadata
+    /**
+     * @category eCR Library Metadata
+     * @description Connection URL for the database.
+     */
     DATABASE_URL?: string;
     /**
      * @category eCR Library Metadata
      * @description Cipher key for database encryption if different then the default.
      */
     DB_CIPHER?: string;
-    ECR_BUCKET_NAME: string;
-    GCP_CREDENTIALS?: string;
-    GCP_PROJECT_ID?: string;
-    GCP_API_ENDPOINT?: string;
-    METADATA_DATABASE_SCHEMA?: "core" | "extended";
-    METADATA_DATABASE_TYPE?: "postgres" | "sqlserver";
-    NBS_AUTH: "true" | "false";
-    NBS_PUB_KEY: string;
-    NEXT_PUBLIC_NON_INTEGRATED_VIEWER: "true" | "false";
-    NEXT_RUNTIME: string;
-    NEXTAUTH_SECRET: string;
-    NON_INTEGRATED_VIEWER: "true" | "false";
-    ORCHESTRATION_URL: string;
-    SOURCE: "s3" | "azure" | "gcp";
+    /**
+     * @category SQL Server
+     * @description Hostname for SQL Server database.
+     * @deprecated Since v3.1.0 - use {@link DATABASE_URL}
+     */
     SQL_SERVER_HOST?: string;
     /**
      * @category SQL Server
@@ -221,18 +207,6 @@ namespace EnvironmentVariables {
      * @deprecated Since v3.1.0 - use {@link DATABASE_URL}
      */
     SQL_SERVER_USER?: string;
+    //#endregion metadata
   }
-}
-
-/**
- * @ignore
- */
-/* eslint-disable unused-imports/no-unused-vars */
-namespace NodeJS {
-  interface ProcessEnv
-    extends EnvironmentVariables.BaseRequired,
-      EnvironmentVariables.EcrStorage,
-      EnvironmentVariables.Authentication,
-      EnvironmentVariables.Metadata,
-      EnvironmentVariables.InternalUse {}
 }
