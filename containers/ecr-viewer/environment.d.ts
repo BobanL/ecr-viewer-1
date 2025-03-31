@@ -36,12 +36,12 @@ namespace EnvironmentVariables {
     /**
      * @category eCR Storage - AZURE
      * @description Azure Blob Storage container name where eCR documents are stored.
-     * @deprecated Since v3.1.0 - Use {@link ECR_BUCKET_NAME}
+     * @deprecated Since v3.1.0 - Use {@link BaseRequired.ECR_BUCKET_NAME}
      */
     AZURE_CONTAINER_NAME?: string;
     /**
      * @category eCR Storage - AZURE
-     * @description Connection string for Azure Storage account.
+     * @description Connection string for Azure Storage account. Required for Azure Blob Storage.
      */
     AZURE_STORAGE_CONNECTION_STRING?: string;
     /**
@@ -172,6 +172,7 @@ namespace EnvironmentVariables {
      * @category Base Required
      * @description Configuration name that determines the type of authentication used, metadata database, and eCR document storage type.
      */
+    //#region configList
     CONFIG_NAME:
       | "AWS_INTEGRATED"
       | "AWS_PG_NON_INTEGRATED"
@@ -182,6 +183,7 @@ namespace EnvironmentVariables {
       | "GCP_INTEGRATED"
       | "GCP_PG_NON_INTEGRATED"
       | "GCP_SQLSERVER_NON_INTEGRATED";
+    //#endregion configList
     /**
      * @category Base Required
      * @description Name of the Container storage where eCR documents are stored.
@@ -196,7 +198,7 @@ namespace EnvironmentVariables {
 
   /**
    * @categoryDescription SQL Server
-   * These variables are deprecated. Please use eCR Library Metadata instead. {@link eCR Library Metadata} {@link AUTH_CLIENT_ID}
+   * These variables are deprecated. Please use eCR Library Metadata instead. {@link DATABASE_URL}
    * @categoryDescription eCR Library Metadata
    * These variables are used to configure the metadata database.
    */
