@@ -156,7 +156,7 @@ jobs:
         with:
           name: container-docs-ecr-viewer
           path: ./docs/${{ needs.build-containers-for-release.outputs.version }}/containers
-        
+
   commit-docs:
     needs:
       - build-containers-for-release
