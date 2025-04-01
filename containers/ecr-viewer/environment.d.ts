@@ -111,7 +111,7 @@ namespace NodeJS {
     /**
      * @category eCR Storage - AZURE
      * @description Azure Blob Storage container name where eCR documents are stored.
-     * @deprecated Since v3.1.0 - Use {@link BaseRequired.ECR_BUCKET_NAME}
+     * @deprecated Since v3.1.0 - Use {@link ECR_BUCKET_NAME}
      */
     AZURE_CONTAINER_NAME?: string;
     /**
