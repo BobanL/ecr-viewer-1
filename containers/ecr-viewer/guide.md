@@ -10,7 +10,7 @@ category: Guides
 
 The eCR Viewer can be run in three modes.
 
-| MODE             | Features Available | Metadata Support | Authentication Supported                      | Environment Variables Needed                                                                                                                                                                   |
+| Mode             | Features Available | Metadata Support | Authentication Supported                      | Environment Variables Needed                                                                                                                                                                   |
 | ---------------- | ------------------ | ---------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `INTEGRATED`     | Viewer             | None             | NBS                                           | [Base](#base-required), [Integrated Authentication](#integrated-authentication)                                                                                                                |
 | `NON_INTEGRATED` | Viewer, Library    | SQLSERVER or PG  | External authentication provider              | [Base](#base-required), [Non Integrated Authentication](#non-integrated-authentication), [Metadata Database](#metadata---ecr-library)                                                          |
