@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
       args:
         - APP_VERSION=1.0
-#    network_mode: host
+    #    network_mode: host
     networks:
       - shared_network
     environment:
