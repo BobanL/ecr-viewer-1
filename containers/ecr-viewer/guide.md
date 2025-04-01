@@ -77,7 +77,7 @@ Placeholder script
 
 Data can be added directly via API requeset to eCR Viewer's /process-zip endpoint.
 
-```curl
+```bash
 curl --location '{URL}/ecr-viewer/api/process-zip' \
 --form 'upload_file=@"/path/to/eicr.zip";type=application/zip'
 ```
