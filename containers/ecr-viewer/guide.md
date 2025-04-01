@@ -8,6 +8,14 @@ category: Guides
 
 ## General Background
 
+The eCR Viewer can be run in three modes.
+
+| MODE             | Features Available | Metadata Support | Authentication Supported                      | Environment Variables Needed                                                                                                                                                                   |
+| ---------------- | ------------------ | ---------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INTEGRATED`     | Viewer             | None             | NBS                                           | [Base](#base-required), [Integrated Authentication](#integrated-authentication)                                                                                                                |
+| `NON_INTEGRATED` | Viewer, Library    | SQLSERVER or PG  | External authentication provider              | [Base](#base-required), [Non Integrated Authentication](#non-integrated-authentication), [Metadata Database](#metadata---ecr-library)                                                          |
+| `DUAL`           | Viewer, Library    | SQLSERVER or PG  | Both NBS and external authentication provider | [Base](#base-required), [Integrated Authentication](#integrated-authentication), [Non Integrated Authentication](#non-integrated-authentication), [Metadata Database](#metadata---ecr-library) |
+
 ## Environment Variable Setup
 
 ### Base Required
@@ -19,16 +27,6 @@ In addition, an storage container for the eCRs must be created. Certain values m
 {@includeCode ./environment.d.ts#aws}
 {@includeCode ./environment.d.ts#azure}
 {@includeCode ./environment.d.ts#gcp}
-
-#### Config Name
-
-`CONFIG_NAME` determines the features, the cloud environment, and type of database. It will follow the format of `Cloud_Db_FeatureSet`. The full list of values can be found {@link NodeJS.ProcessEnv.CONFIG_NAME}
-
-| Feature Set    | Features Available | Metadata Support | Authentication Supported                      |
-| -------------- | ------------------ | ---------------- | --------------------------------------------- |
-| INTEGRATED     | Viewer             | None             | NBS                                           |
-| NON_INTEGRATED | Viewer, Library    | SQLSERVER or PG  | External authentication provider              |
-| DUAL           | Viewer, Library    | SQLSERVER or PG  | Both NBS and external authentication provider |
 
 ### Authentication Setup
 
@@ -42,12 +40,6 @@ Integrated eCR Viewer will rely on NBS to authenticate the user.
 #### Non Integrated Authentication
 
 Non-Integrated will relies on an external authentication provider (like azure ad, entra, or keycloak).
-{@includeCode ./environment.d.ts#auth}
-
-#### Dual Authentication
-
-Dual allows both NBS and external authentication provider. All environment from above will be required
-{@includeCode ./environment.d.ts#auth_nbs}
 {@includeCode ./environment.d.ts#auth}
 
 ### Metadata - eCR Library
