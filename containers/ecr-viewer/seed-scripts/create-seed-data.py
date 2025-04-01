@@ -5,7 +5,9 @@ import zipfile
 
 import grequests
 
-UPLOAD_URL = "http://host.docker.internal:3000/ecr-viewer/api/process-zip"
+#UPLOAD_URL = "http://host.docker.internal:3000/ecr-viewer/api/process-zip"
+UPLOAD_URL = "http://ecr-viewer:3000/ecr-viewer/api/process-zip"
+# UPLOAD_URL = "http://localhost:3000/ecr-viewer/api/process-zip"
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -59,7 +61,6 @@ def _process_files():
             zip_buffer = zip_folder(folder_path)
 
             files = [("upload_file", (f"{folder}.zip", zip_buffer, "application/zip"))]
-            print(files)
             request = grequests.post(UPLOAD_URL, files=files)
 
             requests.append(request)

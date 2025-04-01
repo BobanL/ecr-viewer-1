@@ -49,6 +49,8 @@ services:
       - ingestion-service
       - message-parser-service
       - ecr-viewer
+    networks:
+      - shared_network
     ports:
       - "8080:8080"
     logging:
@@ -79,3 +81,7 @@ services:
     environment:
       - CONFIG_NAME=${CONFIG_NAME}
       - SEED_DATA_DIRECTORIES=${SEED_DATA_DIRECTORIES:-star-wars}
+
+networks:
+  shared-network:
+    driver: bridge

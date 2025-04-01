@@ -23,6 +23,8 @@ services:
     extends:
       file: ../ecr-viewer/docker-compose.yaml
       service: ecr-viewer
+    networks:
+      - shared_network
     profiles: ["", "azure", "aws", "sqlserver"]
     environment:
       - CONFIG_NAME=AZURE_PG_NON_INTEGRATED
@@ -133,6 +135,10 @@ services:
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
+
+networks:
+  shared_network:
+    external: true
 
 volumes:
   prom_data:

@@ -9,7 +9,9 @@ services:
       dockerfile: Dockerfile
       args:
         - APP_VERSION=1.0
-    network_mode: host
+#    network_mode: host
+    networks:
+      - shared_network
     environment:
       - CONFIG_NAME=${CONFIG_NAME:-AWS_SQLSERVER_NON_INTEGRATED}
       - NBS_PUB_KEY=${NBS_PUB_KEY:-}
@@ -170,6 +172,10 @@ services:
       interval: 5s
       timeout: 2s
       retries: 15
+
+networks:
+  shared_network:
+    external: true
 
 volumes:
   db:
