@@ -142,7 +142,6 @@ Note: The diagram omits infrastructure related to OpenTelemetry. OpenTelemetry e
 
 ```mermaid
 flowchart LR
-
   subgraph api["API"]
     direction TB
     subgraph GET["fas:fa-download <code>GET</code>"]
@@ -152,13 +151,11 @@ flowchart LR
       saveFhirData["<code>/api/save-fhir-data</code><br />(Save eCR)"]
     end
   end
-
   subgraph pages["Pages"]
     direction TB
       view-data["<code>/view-data</code><br />(eCR Viewer)"]
       ecr["<code>/</code><br />(eCR Library)"]
   end
-
   subgraph service[Cloud]
     direction TB
     subgraph mr["fab:fa-docker container"]
@@ -166,26 +163,9 @@ flowchart LR
     end
     fileStorage["fab:fa-file File Storage"]
     postgres["fab:fa-database Database"]
-
 	mr <--> |eCR FHIR Data| fileStorage
 	mr <--> |eCR Metadata| postgres
   end
-
   api <--> mr
   pages <--> mr
-```
-
-#### Application API
-
-```mermaid
-graph TD
-    A[ecr-viewer]
-    subgraph API Endpoints
-        direction TB
-        N[POST /save-fhir-data]
-    end
-    A --> M
-    A --> N
-    style A fill:#f9f,stroke:#333,stroke-width:4px,color:#000
-    style API Endpoints fill:#bfb,stroke:#333,stroke-width:2px
 ```

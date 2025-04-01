@@ -24,5 +24,6 @@
     "yaml",
     "tsx",
     "typescript"
-  ]
+  ],
+  "plugin": ["typedoc-plugin-mermaid"]
 }
