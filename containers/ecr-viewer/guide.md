@@ -16,6 +16,75 @@ The eCR Viewer can be run in three modes.
 | `NON_INTEGRATED` | Viewer, Library    | SQLSERVER or PG  | External authentication provider              | [Base](#base-required), [Non Integrated Authentication](#non-integrated-authentication), [Metadata Database](#metadata---ecr-library)                                                          |
 | `DUAL`           | Viewer, Library    | SQLSERVER or PG  | Both NBS and external authentication provider | [Base](#base-required), [Integrated Authentication](#integrated-authentication), [Non Integrated Authentication](#non-integrated-authentication), [Metadata Database](#metadata---ecr-library) |
 
+### Integrated Architecture Diagram
+
+```mermaid
+flowchart LR
+  user
+  nbs["NBS - View eICR"]
+  ingestion["Ingestion Service<br>(e.g. Rhapsody)"]
+  subgraph service[Cloud]
+    direction TB
+    subgraph container["fab:fa-docker container"]
+      viewer["fab:fa-node fab:fa-react <code>ecr-viewer<br>HTTP:3000/</code>"]
+    end
+    fileStorage["fab:fa-file File Storage"]
+	container <--> |eCR FHIR Data| fileStorage
+  end
+  user --> nbs
+  nbs -->|<code>/view-data</code><br>eCR Viewer<br>Authenticated by NBS| container
+  ingestion -->|<code>/api/save-fhir-data</code>| container
+```
+
+### Non Integrated Architecture Diagram
+
+```mermaid
+flowchart LR
+  user
+  ingestion["Ingestion Service<br>(e.g. Rhapsody)"]
+  subgraph service[Cloud]
+    direction TB
+    subgraph container["fab:fa-docker container"]
+      viewer["fab:fa-node fab:fa-react <code>ecr-viewer<br>HTTP:3000/</code>"]
+    end
+    fileStorage["fab:fa-file File Storage"]
+    metadata["fab:fa-database Database"]
+    identityProvider["Identity Provider<br>(e.g. Keycloak/Azure Ad)"]
+	container <--> |eCR FHIR Data| fileStorage
+	container <--> |eCR Metadata| metadata
+    container -->|Validates User| identityProvider
+  end
+  user -->|<code>/view-data</code><br>eCR Viewer<br>Authenticated by identity provider| container
+  user -->|<code>/</code><br>eCR Library<br>Authenticated By identity provider| container
+  ingestion -->|<code>/api/save-fhir-data</code>| container
+```
+
+### Dual Architecture Diagram
+
+```mermaid
+flowchart LR
+  user
+  nbs["NBS - View eICR"]
+  ingestion["Ingestion Service<br>(e.g. Rhapsody)"]
+  subgraph service[Cloud]
+    direction TB
+    subgraph container["fab:fa-docker container"]
+      viewer["fab:fa-node fab:fa-react <code>ecr-viewer<br>HTTP:3000/</code>"]
+    end
+    fileStorage["fab:fa-file File Storage"]
+    metadata["fab:fa-database Database"]
+    identityProvider["Identity Provider<br>(e.g. Keycloak/Azure Ad)"]
+	container <--> |eCR FHIR Data| fileStorage
+	container <--> |eCR Metadata| metadata
+    container -->|Validates User| identityProvider
+  end
+  user --> nbs
+  nbs -->|<code>/view-data</code><br>eCR Viewer<br>Authenticated by NBS| container
+  user -->|<code>/view-data</code><br>eCR Viewer<br>Authenticated by identity provider| container
+  user -->|<code>/</code><br>eCR Library<br>Authenticated By identity provider| container
+  ingestion -->|<code>/api/save-fhir-data</code>| container
+```
+
 ## Environment Variable Setup
 
 The full list of environment variables can be found in {@link NodeJS.ProcessEnv}
