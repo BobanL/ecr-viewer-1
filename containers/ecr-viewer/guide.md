@@ -18,6 +18,8 @@ The eCR Viewer can be run in three modes.
 
 ## Environment Variable Setup
 
+The full list of environment variables can be found in {@link NodeJS.ProcessEnv}
+
 ### Base Required
 
 These variables are required for all deployments. If variables are not set, this may cause issues running the app.
@@ -35,12 +37,12 @@ Some form of authentication will be required on the application.
 #### Integrated Authentication
 
 Integrated eCR Viewer will rely on NBS to authenticate the user.
-{@includeCode ./environment.d.ts#auth_nbs}
+{@includeCode ./environment.d.ts#auth_integrated}
 
 #### Non Integrated Authentication
 
 Non-Integrated will relies on an external authentication provider (like azure ad, entra, or keycloak).
-{@includeCode ./environment.d.ts#auth}
+{@includeCode ./environment.d.ts#auth_non_integrated}
 
 ### Metadata - eCR Library
 

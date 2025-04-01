@@ -46,7 +46,7 @@ namespace NodeJS {
      * @description Database type for metadata storage. This value is set by CONFIG_NAME.
      */
     METADATA_DATABASE_TYPE?: "postgres" | "sqlserver";
-    //#region auth
+    //#region auth_non_integrated
     /**
      * @category Authentication - Standalone
      * @description The application/client id used to idenitfy the client.
@@ -76,14 +76,14 @@ namespace NodeJS {
      * @description Secret key used for NextAuth.js sessions.
      */
     NEXTAUTH_SECRET: string;
-    //#endregion auth
-    //#region auth_nbs
+    //#endregion auth_non_integrated
+    //#region auth_integrated
     /**
      * @category Authentication - NBS
      * @description Public key for NBS authentication.
      */
     NBS_PUB_KEY?: string;
-    //#endregion auth_nbs
+    //#endregion auth_integrated
     //#region aws
     /**
      * @category eCR Storage - AWS
