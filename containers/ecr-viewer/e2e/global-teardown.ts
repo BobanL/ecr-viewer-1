@@ -5,5 +5,5 @@ import fs from "fs";
  * the viewer is tested in all modes.
  */
 export default function gobalTeardown() {
-  fs.rmSync("./integrated/ecr-viewer.spec.ts");
+  fs.rmSync("./e2e/integrated/ecr-viewer.spec.ts");
 }

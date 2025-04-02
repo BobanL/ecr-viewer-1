@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect } from "@playwright/test";
 
-import { nbsAuthParam } from "./utils";
+import { nbsAuthParam } from "../utils";
 
 test.describe("viewer page", () => {
   test("should not have any automatically detectable accessibility issues", async ({

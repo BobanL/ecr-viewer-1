@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { nbsAuthParam } from "./utils";
+import { nbsAuthParam } from "../utils";
 
 test.describe("auth", () => {
   test("should require a login on main page", async ({ page }) => {

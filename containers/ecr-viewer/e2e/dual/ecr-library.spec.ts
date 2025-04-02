@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect } from "@playwright/test";
 
-import { logIn } from "./utils";
+import { logIn } from "../utils";
 
 test.describe("ecr library page", () => {
   test.beforeEach(logIn);

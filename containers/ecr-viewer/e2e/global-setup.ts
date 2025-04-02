@@ -6,7 +6,7 @@ import fs from "fs";
  */
 export default function gobalSetup() {
   fs.copyFileSync(
-    "./dual/ecr-viewer.spec.ts",
-    "./integrated/ecr-viewer.spec.ts",
+    "./e2e/dual/ecr-viewer.spec.ts",
+    "./e2e/integrated/ecr-viewer.spec.ts",
   );
 }

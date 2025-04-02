@@ -8,7 +8,7 @@ import {
   playwrightLighthouseResult,
 } from "playwright-lighthouse";
 
-import { logInToKeycloak } from "./utils";
+import { logInToKeycloak } from "../utils";
 
 const lighthouseTest = test.extend<
   {},
