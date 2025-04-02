@@ -19,11 +19,7 @@ async function runMigration(
 ) {
   const migrator = new Migrator({
     db,
-    provider: new MultiDirectoryMigrationProvider(
-      migrationsDir,
-      fs,
-      path
-    ),
+    provider: new MultiDirectoryMigrationProvider(migrationsDir, fs, path),
   });
 
   if (command === "up") {
@@ -62,7 +58,7 @@ export async function migrate() {
       console.warn("No database supported by config. Skipping migration.");
       return;
     }
-  
+
     const db = getDb() as Kysely<any>;
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const commonDir = path.join(__dirname, `../schemas/common`);
@@ -72,11 +68,11 @@ export async function migrate() {
       console.error('Please provide "up" or "down" as the first argument');
       process.exit(1);
     }
-  
+
     const target = command === "down" ? process.argv[3] : undefined;
-  
+
     await runMigration(db, [commonDir, migrationsDir], command, target);
-  
+
     await db.destroy();
   } catch (error) {
     console.error(error);
@@ -84,4 +80,4 @@ export async function migrate() {
   }
 }
 
-migrate()
+migrate();
