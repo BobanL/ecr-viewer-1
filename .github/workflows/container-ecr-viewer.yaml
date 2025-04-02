@@ -110,6 +110,11 @@ jobs:
         working-directory: ./containers/${{env.CONTAINER}}
 
   e2e-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        config_name: ["AWS_SQLSERVER_DUAL", "AWS_INTEGRATED"]
+
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -134,6 +139,11 @@ jobs:
         run: |
           npm run setup-local-env
           ../../setup-env.sh ../orchestration/.env ../orchestration/.env.sample
+
+      - name: Set CONFIG_NAME to ${{ matrix.config_name }}
+        working-directory: ./containers/${{env.CONTAINER}}
+        run: |
+          sed -i 's/AWS_SQLSERVER_DUAL/${{ matrix.config_name }}/' .env.local
 
       - name: Run seed data conversion
         working-directory: ./containers/${{env.CONTAINER}}
@@ -167,31 +177,6 @@ jobs:
         with:
           name: lighthouse-report
           path: containers/${{env.CONTAINER}}/lighthouse/
-          retention-days: 5
-
-      - name: Set CONFIG_NAME to AWS_INTEGRATED
-        working-directory: ./containers/${{env.CONTAINER}}
-        run: |
-          sed -i 's/AWS_SQLSERVER_DUAL/AWS_INTEGRATED/' .env.local
-
-      - name: Run local docker and wait for it to be ready
-        working-directory: ./containers/${{env.CONTAINER}}
-        run: npm run local-docker:silent && ./e2e/waitForUrl.sh localhost:3000/ecr-viewer/api/health-check
-
-      - name: Run Playwright tests - Integrated
-        working-directory: ./containers/${{env.CONTAINER}}
-        run: npm run test:e2e:integrated
-
-      - name: Docker down
-        working-directory: ./containers/${{env.CONTAINER}}
-        run: docker compose --profile "*" down
-
-      - name: Upload playwright report - integrated
-        uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report-integrated
-          path: containers/${{env.CONTAINER}}/playwright-report/
           retention-days: 5
 
       - name: Get docker logs

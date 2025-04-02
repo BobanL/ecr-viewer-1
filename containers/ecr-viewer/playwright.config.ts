@@ -4,7 +4,13 @@ import { defineConfig, devices } from "@playwright/test";
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: "./e2e",
+  testDir:
+    process.env.CONFIG_NAME.endsWith("DUAL") ||
+    process.env.CONFIG_NAME.endsWith("NON_INTEGRATED")
+      ? "./e2e/dual"
+      : "./e2e/integrated",
+  globalSetup: require.resolve("./e2e/global-setup"),
+  globalTeardown: require.resolve("./e2e/global-teardown"),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

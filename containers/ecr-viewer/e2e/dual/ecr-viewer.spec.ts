@@ -1,11 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect } from "@playwright/test";
 
-import { logInToKeycloak } from "./utils";
+import { nbsAuthParam } from "./utils";
 
 test.describe("viewer page", () => {
-  test.beforeEach(logInToKeycloak);
-
   test("should not have any automatically detectable accessibility issues", async ({
     page,
   }) => {
@@ -13,7 +11,7 @@ test.describe("viewer page", () => {
     test.setTimeout(120_000);
 
     await page.goto(
-      "/ecr-viewer/view-data?id=db734647-fc99-424c-a864-7e3cda82e703",
+      `/ecr-viewer/view-data?id=db734647-fc99-424c-a864-7e3cda82e703&${nbsAuthParam}`,
     );
     await page.getByText("Patient Name").first().waitFor();
 
@@ -27,7 +25,7 @@ test.describe("viewer page", () => {
     page,
   }) => {
     await page.goto(
-      "/ecr-viewer/view-data?id=db734647-fc99-424c-a864-7e3cda82e703",
+      `/ecr-viewer/view-data?id=db734647-fc99-424c-a864-7e3cda82e703&${nbsAuthParam}`,
     );
     await page.getByRole("button", { name: "Expand all labs" }).click();
 
@@ -44,7 +42,7 @@ test.describe("viewer page", () => {
   test.describe("side nav", () => {
     test.beforeEach(async ({ page }) => {
       await page.goto(
-        "/ecr-viewer/view-data?id=db734647-fc99-424c-a864-7e3cda82e703",
+        `/ecr-viewer/view-data?id=db734647-fc99-424c-a864-7e3cda82e703&${nbsAuthParam}`,
       );
       await page.getByText("Patient Name").first().waitFor();
     });
