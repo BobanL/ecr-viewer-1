@@ -22,8 +22,15 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          skip-github-pull-request: true
-          skip-github-release: false
       - name: outputs
         run: |
           echo '${{ toJSON(steps.release.outputs) }}'
+      - uses: googleapis/release-please-action@v4
+        if: ${{ steps.release.outputs.release_created }}
+        with:
+          # this assumes that you have created a personal access token
+          # (PAT) and configured it as a GitHub action secret named
+          # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
+          token: ${{ secrets.GH_TOKEN }}
+          config-file: release-please-config.latest.json
+          manifest-file: .release-please-manifest.latest.json
