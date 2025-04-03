@@ -51,8 +51,8 @@ test.describe("viewer page", () => {
       const nav = page.getByRole("navigation");
       await expect(nav).toBeVisible();
 
-      const navLinks = await nav.getByRole("link").all();
-      expect(navLinks.length).toBe(22);
+      const navLinks = await nav.getByTestId("sidenav-link").all();
+      expect(navLinks.length).toBe(21);
 
       // Make sure after collapsing and reopening, nav links still work
       await page.getByText("Collapse all sections").click();
@@ -64,8 +64,6 @@ test.describe("viewer page", () => {
       // make sure clicking each link scrolls the heading and highlights the corresponding
       // side nav item
       for (const navLink of navLinks) {
-        const linkText = await navLink.innerText();
-        if (linkText === "Back to eCR Library") continue;
         await navLink.scrollIntoViewIfNeeded();
         await navLink.click();
         await expect(
@@ -81,9 +79,9 @@ test.describe("viewer page", () => {
       const nav = page.getByRole("navigation");
       await expect(nav).toBeVisible();
 
-      const navLinks = await nav.getByRole("link");
+      const navLinks = await nav.getByTestId("sidenav-link");
       const numLinks = (await navLinks.all()).length;
-      let navIndex = 1; // skip "back to library" link
+      let navIndex = 0;
       while (navIndex < numLinks) {
         await page.mouse.wheel(0, 10);
 

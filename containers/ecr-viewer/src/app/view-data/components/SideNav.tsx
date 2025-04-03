@@ -230,6 +230,7 @@ const SideNav: React.FC = () => {
           key={section.id}
           href={"#" + section.id}
           className={activeSection === section.id ? "usa-current" : ""}
+          data-testid="sidenav-link"
         >
           {section.title}
         </a>

@@ -17,7 +17,7 @@ export const logInToKeycloak = async ({ page }: PlaywrightTestArgs) => {
   await page.getByRole("textbox", { name: "password" }).fill("pw");
   await page.getByRole("button", { name: "Sign in" }).click();
 
-  expect(page.getByText("eCR Library"));
+  await expect(page.getByText("eCR Library")).toBeVisible();
 };
 
 /**
@@ -27,7 +27,7 @@ export const logInToKeycloak = async ({ page }: PlaywrightTestArgs) => {
  */
 export const logInToAd = async ({ page }: PlaywrightTestArgs) => {
   await page.goto("/ecr-viewer");
-  // not implemented
+  // TODO: not implemented
 };
 
 /**
