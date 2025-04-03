@@ -4,7 +4,7 @@
       "changelog-path": "CHANGELOG-BETA.md",
       "release-type": "simple",
       "prerelease": true,
-      "prerelease-type": "beta0",
+      "prerelease-type": "beta1",
       "versioning": "prerelease"
     }
   },
