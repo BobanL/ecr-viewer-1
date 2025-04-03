@@ -33,4 +33,4 @@ jobs:
           # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
           token: ${{ secrets.GH_TOKEN }}
           config-file: release-please-config.latest.json
-          manifest-file: .release-please-manifest.latest.json
+          manifest-file: .release-please-manifest.json
