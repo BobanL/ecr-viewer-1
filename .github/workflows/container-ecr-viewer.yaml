@@ -167,7 +167,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-${matrix.config_name}
+          name: playwright-report-${{ matrix.config_name }}
           path: containers/${{env.CONTAINER}}/playwright-report/
           retention-days: 5
 
@@ -175,7 +175,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: lighthouse-report-${matrix.config_name}
+          name: lighthouse-report-${{ matrix.config_name }}
           path: containers/${{env.CONTAINER}}/lighthouse/
           retention-days: 5
 
@@ -191,7 +191,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs
+          name: logs-${{ matrix.config_name }}
           path: ./containers/${{env.CONTAINER}}/e2e/e2e-run.log
           retention-days: 5
 
